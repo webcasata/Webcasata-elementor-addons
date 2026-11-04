@@ -1,0 +1,275 @@
+/* Qyrus Accordion + Image Switcher — base structural styles.
+   Colors/typography are overridden per-instance by Elementor's Style tab controls. */
+
+.qyrus-accordion-widget {
+	display: flex;
+	align-items: flex-start;
+	gap: 48px;
+	flex-wrap: wrap;
+}
+
+/* -------------------- Left column: accordion list -------------------- */
+
+.qyrus-accordion-list {
+	flex: 1 1 420px;
+	min-width: 280px;
+}
+
+.qyrus-accordion-item {
+	border-bottom: 1px solid #e5e5ea;
+}
+
+.qyrus-accordion-item:first-child {
+	border-top: 1px solid #e5e5ea;
+}
+
+.qyrus-accordion-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px 4px;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.qyrus-accordion-title:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+.qyrus-accordion-title-text {
+	font-weight: 600;
+	font-size: 18px;
+	line-height: 1.4;
+	color: #1b1f3b;
+	transition: color 0.2s ease;
+}
+
+.qyrus-accordion-icon {
+	position: relative;
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+.qyrus-accordion-icon::before,
+.qyrus-accordion-icon::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	background-color: #1b1f3b;
+	transform: translate(-50%, -50%);
+	transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.qyrus-accordion-icon::before {
+	width: 12px;
+	height: 2px;
+}
+
+.qyrus-accordion-icon::after {
+	width: 2px;
+	height: 12px;
+}
+
+.qyrus-accordion-item.active .qyrus-accordion-icon::after {
+	transform: translate(-50%, -50%) rotate(90deg);
+	opacity: 0;
+}
+
+.qyrus-accordion-content {
+	padding: 0 4px 24px;
+}
+
+.qyrus-accordion-description {
+	color: #55597a;
+	font-size: 15px;
+	line-height: 1.65;
+	margin: 0 0 16px;
+}
+
+.qyrus-accordion-description p:last-child {
+	margin-bottom: 0;
+}
+
+.qyrus-accordion-readmore {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+	font-size: 14px;
+	color: #63b31e;
+	text-decoration: none;
+}
+
+.qyrus-readmore-arrow {
+	display: inline-block;
+	transition: transform 0.2s ease;
+}
+
+.qyrus-accordion-readmore:hover .qyrus-readmore-arrow {
+	transform: translateX(3px);
+}
+
+/* -------------------- Right column: image panel -------------------- */
+
+.qyrus-accordion-image-panel {
+	flex: 1 1 460px;
+	max-width: 48%;
+	min-width: 280px;
+	position: relative;
+	background-color: #f5f7fa;
+	border: 2px solid #a8e063;
+	border-radius: 20px;
+	padding: 24px;
+	overflow: hidden;
+	min-height: 360px;
+}
+
+.qyrus-accordion-image {
+	display: none;
+	width: 100%;
+	height: auto;
+	border-radius: 8px;
+	/* Duration / easing are overridden by the widget's Style controls. */
+	animation-duration: 0.4s;
+	animation-timing-function: ease;
+	animation-fill-mode: both;
+}
+
+.qyrus-accordion-image.active {
+	display: block;
+}
+
+/* -------------------- Image switch animations -------------------- */
+/* The Animation control puts .qyrus-img-anim-{name} on the widget wrapper.
+   An image goes display:none -> block when it becomes active, which restarts
+   its CSS animation every time. The .qyrus-switched gate (added by JS on the
+   first switch) keeps the very first image from animating on page load. */
+
+.qyrus-img-anim-fade .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-fade;
+}
+
+.qyrus-img-anim-slide-from-bottom .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-slide-bottom;
+}
+
+.qyrus-img-anim-slide-from-top .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-slide-top;
+}
+
+.qyrus-img-anim-slide-from-left .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-slide-left;
+}
+
+.qyrus-img-anim-slide-from-right .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-slide-right;
+}
+
+.qyrus-img-anim-zoom-in .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-zoom-in;
+}
+
+.qyrus-img-anim-zoom-out .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-zoom-out;
+}
+
+.qyrus-img-anim-blur .qyrus-switched .qyrus-accordion-image.active {
+	animation-name: qyrus-img-blur;
+}
+
+@keyframes qyrus-img-fade {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+@keyframes qyrus-img-slide-bottom {
+	from { opacity: 0; transform: translate3d(0, 40px, 0); }
+	to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes qyrus-img-slide-top {
+	from { opacity: 0; transform: translate3d(0, -40px, 0); }
+	to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes qyrus-img-slide-left {
+	from { opacity: 0; transform: translate3d(-40px, 0, 0); }
+	to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes qyrus-img-slide-right {
+	from { opacity: 0; transform: translate3d(40px, 0, 0); }
+	to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes qyrus-img-zoom-in {
+	from { opacity: 0; transform: scale(0.9); }
+	to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes qyrus-img-zoom-out {
+	from { opacity: 0; transform: scale(1.1); }
+	to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes qyrus-img-blur {
+	from { opacity: 0; filter: blur(14px); }
+	to   { opacity: 1; filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.qyrus-accordion-widget .qyrus-accordion-image.active {
+		animation: none !important;
+	}
+}
+
+/* -------------------- Mobile inline image (per accordion item) -------------------- */
+/* Hidden on tablet/desktop; the shared image panel above is used instead. */
+
+.qyrus-accordion-mobile-image-wrap {
+	display: none;
+}
+
+.qyrus-accordion-mobile-image {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 8px;
+}
+
+/* -------------------- Responsive -------------------- */
+
+@media (max-width: 1024px) {
+	.qyrus-accordion-image-panel {
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 767px) {
+	.qyrus-accordion-widget {
+		flex-direction: column;
+	}
+
+	.qyrus-accordion-title-text {
+		font-size: 16px;
+	}
+
+	/* Swap: hide the shared side panel, show each item's own inline image instead. */
+	.qyrus-accordion-image-panel {
+		display: none;
+	}
+
+	.qyrus-accordion-mobile-image-wrap {
+		display: block;
+		background-color: #f5f7fa;
+		border: 2px solid #a8e063;
+		border-radius: 20px;
+		padding: 16px;
+		margin: 16px 0;
+		overflow: hidden;
+	}
+}

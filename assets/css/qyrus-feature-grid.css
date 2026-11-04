@@ -1,0 +1,84 @@
+/* Qyrus Feature Grid — base structural styles.
+   Colors/typography/spacing are overridden per-instance by Elementor's Style tab controls. */
+
+.qyrus-feature-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 24px;
+}
+
+.qyrus-feature-card {
+	display: flex;
+	flex-direction: column;
+	background-color: #ffffff;
+	border: 1px solid #e5e5ea;
+	border-radius: 16px;
+	padding: 32px 28px;
+	text-decoration: none;
+	transition: background-color 0.25s ease, border-color 0.25s ease,
+		box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.qyrus-feature-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 56px;
+	height: 56px;
+	border-radius: 999px;
+	background-color: #eef7e3;
+	color: #63b31e;
+	font-size: 24px;
+	margin-bottom: 20px;
+	flex-shrink: 0;
+}
+
+.qyrus-feature-icon svg {
+	width: 1em;
+	height: 1em;
+	fill: currentColor;
+}
+
+.qyrus-feature-title {
+	font-size: 19px;
+	font-weight: 600;
+	color: #1b1f3b;
+	margin: 0 0 10px;
+	line-height: 1.4;
+	transition: color 0.2s ease;
+}
+
+.qyrus-feature-description {
+	font-size: 15px;
+	line-height: 1.6;
+	color: #55597a;
+	margin: 0;
+}
+
+.qyrus-feature-description p:last-child {
+	margin-bottom: 0;
+}
+
+/* Content alignment */
+.qyrus-feature-grid.qyrus-align-center .qyrus-feature-card {
+	align-items: center;
+	text-align: center;
+}
+
+.qyrus-feature-grid.qyrus-align-left .qyrus-feature-card {
+	align-items: flex-start;
+	text-align: left;
+}
+
+/* Responsive fallback (Elementor's own responsive controls also apply inline). */
+@media (max-width: 1024px) {
+	.qyrus-feature-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767px) {
+	.qyrus-feature-grid {
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+	}
+}

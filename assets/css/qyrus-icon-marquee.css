@@ -1,0 +1,137 @@
+/* Qyrus Icon Marquee Slider — pure CSS-animation infinite scroll.
+   Each lane's track renders its icon set twice back-to-back; animating
+   translate(-50%) on the track loops seamlessly since both halves match. */
+
+.qyrus-icon-marquee-widget {
+	overflow: hidden;
+}
+
+.qyrus-marquee-lanes {
+	display: flex;
+	gap: 20px;
+}
+
+.qyrus-marquee-vertical .qyrus-marquee-lanes {
+	flex-direction: row;
+	height: 380px;
+}
+
+.qyrus-marquee-horizontal .qyrus-marquee-lanes {
+	flex-direction: column;
+}
+
+.qyrus-marquee-lane {
+	overflow: hidden;
+	flex: 1 1 0;
+}
+
+.qyrus-marquee-vertical .qyrus-marquee-lane {
+	height: 100%;
+}
+
+.qyrus-marquee-horizontal .qyrus-marquee-lane {
+	width: 100%;
+}
+
+.qyrus-marquee-track {
+	display: flex;
+	will-change: transform;
+}
+
+.qyrus-marquee-vertical .qyrus-marquee-track {
+	flex-direction: column;
+	animation: qyrus-marquee-scroll-y var(--qyrus-marquee-duration, 30s) linear infinite;
+}
+
+.qyrus-marquee-horizontal .qyrus-marquee-track {
+	flex-direction: row;
+	animation: qyrus-marquee-scroll-x var(--qyrus-marquee-duration, 30s) linear infinite;
+}
+
+.qyrus-marquee-lane.qyrus-marquee-reverse .qyrus-marquee-track {
+	animation-direction: reverse;
+}
+
+.qyrus-pause-on-hover .qyrus-marquee-lane:hover .qyrus-marquee-track {
+	animation-play-state: paused;
+}
+
+@keyframes qyrus-marquee-scroll-y {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(0, -50%, 0);
+	}
+}
+
+@keyframes qyrus-marquee-scroll-x {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-50%, 0, 0);
+	}
+}
+
+.qyrus-marquee-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+	flex-shrink: 0;
+}
+
+.qyrus-marquee-vertical .qyrus-marquee-item {
+	margin-bottom: 20px;
+}
+
+.qyrus-marquee-horizontal .qyrus-marquee-item {
+	margin-right: 20px;
+}
+
+.qyrus-marquee-icon-box {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 96px;
+	height: 96px;
+	background-color: #ffffff;
+	border-radius: 12px;
+	padding: 16px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.qyrus-marquee-icon-box img {
+	max-width: 100%;
+	max-height: 100%;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+	transition: filter 0.25s ease, opacity 0.25s ease;
+}
+
+.qyrus-marquee-widget-grayscale .qyrus-marquee-icon-box img {
+	filter: grayscale(100%);
+	opacity: 0.7;
+}
+
+.qyrus-marquee-item:hover .qyrus-marquee-icon-box img {
+	filter: none;
+	opacity: 1;
+}
+
+.qyrus-marquee-caption {
+	margin-top: 8px;
+	font-size: 13px;
+	color: #55597a;
+	text-align: center;
+}
+
+@media (max-width: 767px) {
+	.qyrus-marquee-vertical .qyrus-marquee-lanes {
+		height: 280px;
+	}
+}

@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Webcasata Elementor Addons
- * Description: Custom Elementor widgets built for the Qyrus site, grouped under their own "Webcasata" category in the widget panel. Includes Webcasata Accordion (left/right accordion where the image swaps per item, with its own mobile inline-image layout), Webcasata Feature Grid (icon + title + description cards in a responsive grid), Webcasata Icon Scroll (infinite vertical/horizontal auto-scrolling icon wall), and Webcasata Content Filter (drops a saved Webcasata Content Filter plugin filter onto the page). Also extends Elementor's Container with :before / :after pseudo-element controls (Normal + Hover, no custom CSS).
- * Version:     1.7.0
+ * Description: Custom Elementor widgets built for the Qyrus site, grouped under their own "Webcasata" category in the widget panel. Includes Webcasata Accordion (left/right accordion where the image swaps per item, with its own mobile inline-image layout), Webcasata Feature Grid (icon + title + description cards in a responsive grid), Webcasata Icon Scroll (infinite vertical/horizontal auto-scrolling icon wall), and Webcasata Content Filter (drops a saved Webcasata Content Filter plugin filter onto the page). Also extends Elementor's Container with :before / :after pseudo-element controls (Normal + Hover, no custom CSS), and adds a "Style On Parent Hover" section to every widget and container.
+ * Version:     1.9.0
  * Author:      Webcasata
  * Author URI:  https://webcasata.com
  * Text Domain: webcasata-elementor-addons
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'QYRUS_ACCORDION_VERSION', '1.7.0' );
+define( 'QYRUS_ACCORDION_VERSION', '1.9.0' );
 define( 'QYRUS_ACCORDION_URL', plugin_dir_url( __FILE__ ) );
 define( 'QYRUS_ACCORDION_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -39,6 +39,8 @@ final class Qyrus_Accordion_Plugin {
 
 		// Container extension: :before / :after controls on Elementor's own Container.
 		require_once QYRUS_ACCORDION_PATH . 'includes/class-webcasata-pseudo-elements.php';
+		// "Style On Parent Hover" for every widget and container (Advanced tab).
+		require_once QYRUS_ACCORDION_PATH . 'includes/class-webcasata-parent-hover.php';
 
 		add_action( 'elementor/widgets/register', [ $this, 'register_widgets' ] );
 		add_action( 'elementor/elements/categories_registered', [ $this, 'register_categories' ] );

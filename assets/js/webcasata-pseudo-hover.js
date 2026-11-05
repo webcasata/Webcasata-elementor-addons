@@ -1,21 +1,23 @@
 /**
- * Webcasata Pseudo Elements — "Custom class" hover trigger.
+ * Webcasata hover triggers — the "Custom class" option.
  *
- * "This container" and "Direct parent container" are pure CSS. Only the
- * "Custom class" trigger needs script, because Elementor cannot put a typed
- * class name into a CSS selector. For each container that uses it, this
- * watches the chosen element and toggles .wpe-before-hover / .wpe-after-hover
- * on the container while the pointer is over it; the generated CSS does the rest.
+ * Used by two features:
+ *   - Container Pseudo Elements (:before / :after) -> toggles .wpe-before-hover / .wpe-after-hover
+ *   - Style On Parent Hover (any widget/container)  -> toggles .wph-hover
  *
- * Which element is watched: the nearest ancestor of the container that has the
+ * "This container" / "Direct parent container" are pure CSS. Only "Custom
+ * class" needs script, because Elementor cannot put a typed class name into a
+ * CSS selector. The element watched is the nearest ancestor that has the
  * class; if there is none, every element on the page that has the class.
+ *
+ * One handler serves both features (attached to every element) because
+ * Elementor tells handlers apart in the editor by their constructor name.
  */
 (function ($) {
 	"use strict";
 
-	var PSEUDOS = ["before", "after"];
 	var SAFE_CLASS = /^[A-Za-z_][A-Za-z0-9_-]*$/;
-	var WATCHED_SETTING = /^wpe_(before|after)_(enable|h_trigger|h_class)$/;
+	var WATCHED_SETTING = /^(wpe_(before|after)_(enable|h_trigger|h_class)|wph_(enable|trigger|class))$/;
 
 	function register() {
 		if (
@@ -29,7 +31,7 @@
 			return;
 		}
 
-		var PseudoHover = elementorModules.frontend.handlers.Base.extend({
+		var HoverTriggers = elementorModules.frontend.handlers.Base.extend({
 			listeners: null,
 
 			// Elementor calls bindEvents() on init and unbindEvents() on destroy.
@@ -55,28 +57,27 @@
 				this.release();
 				this.listeners = [];
 
-				PSEUDOS.forEach(function (pseudo) {
-					if (settings["wpe_" + pseudo + "_enable"] !== "yes") {
-						return;
+				// Pseudo-elements (containers only: the settings simply don't exist elsewhere).
+				["before", "after"].forEach(function (pseudo) {
+					var p = "wpe_" + pseudo + "_";
+					if (settings[p + "enable"] === "yes" && settings[p + "h_trigger"] === "custom") {
+						self.watch("wpe-" + pseudo + "-hover", settings[p + "h_class"]);
 					}
-					if (settings["wpe_" + pseudo + "_h_trigger"] !== "custom") {
-						return;
-					}
-
-					var cls = String(settings["wpe_" + pseudo + "_h_class"] || "")
-						.replace(/^\./, "")
-						.trim();
-					if (!SAFE_CLASS.test(cls)) {
-						return;
-					}
-
-					self.watch(pseudo, cls);
 				});
+
+				// Style On Parent Hover (any widget / container).
+				if (settings.wph_enable === "yes" && settings.wph_trigger === "custom") {
+					self.watch("wph-hover", settings.wph_class);
+				}
 			},
 
-			watch: function (pseudo, cls) {
+			watch: function (hoverClass, rawClass) {
+				var cls = String(rawClass || "").replace(/^\./, "").trim();
+				if (!SAFE_CLASS.test(cls)) {
+					return;
+				}
+
 				var el = this.$element[0];
-				var hoverClass = "wpe-" + pseudo + "-hover";
 				var ancestor = el.parentElement ? el.parentElement.closest("." + cls) : null;
 				var targets = ancestor
 					? [ancestor]
@@ -115,8 +116,13 @@
 			},
 		});
 
-		// `null` skin => the plain "frontend/element_ready/container" hook.
-		elementorFrontend.elementsHandler.attachHandler("container", PseudoHover, null);
+		// Elementor identifies handlers by constructor name; make ours unique.
+		try {
+			Object.defineProperty(HoverTriggers, "name", { value: "WebcasataHoverTriggers" });
+		} catch (e) {}
+
+		// `null` skin => the plain "frontend/element_ready/global" hook (every widget and container).
+		elementorFrontend.elementsHandler.attachHandler("global", HoverTriggers, null);
 	}
 
 	$(window).on("elementor/frontend/init", register);

@@ -91,8 +91,25 @@ This is not a widget: it adds controls to Elementor's own **Container**, so deco
 
 **Style it** — **Style** tab → a **Pseudo :before** / **Pseudo :after** section appears (scroll below Shape Divider), each with **Normal** and **Hover** tabs:
 
-- **Normal:** Content (text or an icon-font code like `\f101`), Position, Fill Container, Width/Height, Offset (Top/Right/Bottom/Left), Background (classic or gradient), Opacity, Border, Border Radius, Box Shadow, CSS Filters, Backdrop Blur, Transform (Translate X/Y, Rotate, Scale), Layering (Send Behind Container Content, Z-Index), Blend Mode, Pointer Events. Width, Height, Offset, Translate and Border Radius are responsive.
+- **Style Preset** (above the tabs): *Gradient Border*, *Hover Overlay*, *Slide-In Fill* (from bottom/top/left/right), *Corner Ribbon* and *Animated Underline* — see "Presets" below.
+- **Normal:** Content (text or an icon-font code like `\f101`), **Icon Font** (Font Awesome Solid/Regular/Brands or eicons — loaded automatically; without it an icon code shows as an empty box), **Center Content** (centres the text/icon inside the Width/Height), Typography, Position, Fill Container, Width/Height, Offset (Top/Right/Bottom/Left), Background (classic or gradient), Text/Icon Color, Opacity, Border, Border Radius, Box Shadow, CSS Filters, Backdrop Blur, Transform (Translate X/Y, Rotate, Scale), Layering (Send Behind Container Content, Z-Index), Blend Mode, Pointer Events. Width, Height, Offset, Translate and Border Radius are responsive.
 - **Hover:** a **Hover Trigger** dropdown, then the same animatable options (size, offset, background, opacity, border, shadow, filters, transform), then **Transition** (duration and easing). Only what you change in Hover is applied on hover.
+
+### Presets
+
+Pick one under **Style Preset** at the top of a Pseudo `:before` / `:after` section. A preset is a ready-made starting layer, **not** a lock: everything you set in the Normal / Hover tabs lands after it and wins. Each preset has a few knobs of its own that appear when it is chosen.
+
+| Preset | What it does | Knobs |
+|---|---|---|
+| Gradient Border | Two-colour gradient border that follows the container's rounded corners (CSS mask, so the inside stays see-through) | Color, Color 2, Border Width |
+| Hover Overlay | Colour layer that fades in on hover, behind the content | Color |
+| Slide-In Fill | Colour slides in over the container on hover | Color, Slide In From (bottom/top/left/right) |
+| Corner Ribbon | Diagonal ribbon in a top corner, clipped to the container | Color, Color 2 (text), Corner, Ribbon Text |
+| Animated Underline | Bar along the bottom that grows from 0 to full width on hover | Color, Thickness |
+
+- Hover presets use the **Hover Trigger** and **Transition** from the Hover tab (this container, direct parent, or custom class).
+- Overlay and Slide-In Fill set `isolation: isolate` on the container so they sit behind its content; Slide-In Fill and Corner Ribbon also set `overflow: hidden` so nothing spills out (this also clips anything else that overhangs the container, such as a child's shadow).
+- Leaving a knob empty uses the preset's own default colour/size. Switching preset to **None** removes all of its CSS.
 
 **Hover Trigger options**
 
@@ -109,7 +126,20 @@ This is not a widget: it adds controls to Elementor's own **Container**, so deco
 - **`:before` is also Elementor's Background Overlay layer.** Elementor draws its own overlay with `::before` on every container, so by default the `:before` here already covers the whole container (and copies its rounded corners). Do not use it together with a Background Overlay on the same container — use `:after` for that. `:after` has no default size: it is invisible until you set Width/Height or switch on Fill Container.
 - Both start as `position: absolute` with `pointer-events: none`, so they never block clicks. An absolute pseudo-element is painted above the container's content unless you use **Send Behind Container Content** (this sets `z-index: -1` and `isolation: isolate` on the container so it stays inside it).
 - Disabling a pseudo-element switch removes all of its CSS, even if values are still set in the panel.
-- Phase 1 covers Containers only (not legacy Sections/Columns). Planned next: "On Parent Hover" controls for child widgets, and presets (gradient border, overlay, ribbon, animated underline).
+- Pseudo-elements are for Containers only (not legacy Sections/Columns). 
+
+## Style On Parent Hover (any widget or container)
+
+Lets a child change while its **parent** is hovered — e.g. a card whose heading and paragraph change colour when the card is hovered — without custom CSS.
+
+**Turn it on** — select any widget (or a nested Container) → **Advanced** tab → **Style On Parent Hover** → switch on **Style On Parent Hover**.
+
+- **Hover Trigger:** *Direct parent container* (default, pure CSS), or *Custom class* — type a class name (no dot) and the styles apply while the pointer is over the nearest ancestor with that class (or, failing that, any element on the page with it). Use this when the element that should trigger the hover is higher up than the direct parent.
+- **Color:** **Text Color** recolours the element *and everything inside it* (headings, paragraphs, links, font icons); **Icon (SVG) Fill Color** does the same for SVG icons.
+- **Background**, **Opacity**, **Border**, **Border Radius**, **Box Shadow**, **CSS Filters**, **Transform** (Translate X/Y, Rotate, Scale), and **Transition** (duration, easing).
+- Only the options you set are applied on hover. These controls style the widget's outer wrapper (and, for Text Color / SVG Fill, what is inside it). To restyle one specific inner part of a widget (say a button's border), set it on that widget's own Style tab hover state instead.
+- Hovering the child itself also counts, because the child is inside its parent. Hover does not exist on touch screens.
+- With the switch off, nothing is generated, even if values were left in the panel.
 
 ## Installation
 
@@ -143,7 +173,8 @@ This is not a widget: it adds controls to Elementor's own **Container**, so deco
 webcasata-elementor-addons/
 ├── webcasata-elementor-addons.php                # Plugin bootstrap – registers all widgets
 ├── includes/
-│   └── class-webcasata-pseudo-elements.php        # Container extension: :before / :after controls
+│   ├── class-webcasata-pseudo-elements.php        # Container extension: :before / :after controls
+│   └── class-webcasata-parent-hover.php           # "Style On Parent Hover" for every widget/container
 ├── widgets/
 │   ├── class-qyrus-home-accordion-widget.php      # Webcasata Accordion: controls + render()
 │   ├── class-qyrus-feature-grid-widget.php        # Feature Grid: controls + render()
@@ -156,7 +187,7 @@ webcasata-elementor-addons/
 │   │   └── qyrus-icon-marquee.css                 # Marquee keyframes + layout
 │   └── js/
 │       ├── qyrus-accordion.js                     # Accordion toggle + desktop image-swap behavior
-│       └── webcasata-pseudo-hover.js              # "Custom class" hover trigger for pseudo-elements
+│       └── webcasata-pseudo-hover.js              # "Custom class" hover trigger (pseudo-elements + parent hover)
 └── README.md
 ```
 
@@ -166,10 +197,12 @@ To add another widget later: drop a new `class-qyrus-*.php` file in `widgets/`, 
 
 - Only the **plugin's public identity** was changed for this package: the Plugin Name, Description, Author, Author URI, Text Domain, the plugin folder/main file name, and the admin notice text. Internal PHP class names (`Qyrus_*`), CSS classes (`.qyrus-*`) and script/style handles were intentionally left as-is — renaming those touches nearly every line across all files and carries real risk of breaking something, and they're invisible to anyone using the plugin. Say the word if you'd like a full internal rebrand too (classes, CSS prefixes, asset filenames).
 - **Author URI is a placeholder** (`https://webcasata.com`) — update the header comment in the main plugin file if that isn't correct.
-- The version was bumped to **1.3.0** to reflect the new Webcasata widget category and renamed widgets, to **1.3.1** to fix a seamless-loop bug in the Icon Scroll widget, to **1.4.0** to add the Webcasata Content Filter widget, to **1.4.1** to fix that widget's dependency check, to **1.5.0** to add the Content Filter widget's Display toggles, to **1.5.1** to split "Meta" into three separate toggles, to **1.6.0** to add the accordion's hover trigger and image switch animations, and to **1.7.0** to add the Container pseudo-element extension (see below).
+- The version was bumped to **1.3.0** to reflect the new Webcasata widget category and renamed widgets, to **1.3.1** to fix a seamless-loop bug in the Icon Scroll widget, to **1.4.0** to add the Webcasata Content Filter widget, to **1.4.1** to fix that widget's dependency check, to **1.5.0** to add the Content Filter widget's Display toggles, to **1.5.1** to split "Meta" into three separate toggles, to **1.6.0** to add the accordion's hover trigger and image switch animations, to **1.7.0** to add the Container pseudo-element extension, to **1.8.0** to add Center Content / Icon Font for pseudo-elements and Style On Parent Hover, and to **1.9.0** to add the pseudo-element style presets (see below).
 
 ## Changelog
 
+- **1.9.0** — Pseudo-element **Style Presets** (Phase 3): Gradient Border, Hover Overlay, Slide-In Fill, Corner Ribbon, Animated Underline, each with its own colour/size/direction knobs. Presets are a CSS layer that your Normal/Hover settings override; they use the existing Hover Trigger and Transition.
+- **1.8.0** — (1) Pseudo-elements: added **Center Content**, **Icon Font** (with automatic loading of the matching Elementor icon stylesheet — fixes icon codes rendering as an empty box), **Typography** and **Text/Icon Color** (Normal and Hover). (2) New **Style On Parent Hover** section in the Advanced tab of every widget and container (trigger: direct parent container or custom class). The hover script now serves both features from one handler attached to every element, and only does work for elements that use "Custom class".
 - **1.7.0** — Added the **Pseudo Elements** extension to Elementor's Container (Phase 1): `:before` / `:after` switches in the Layout tab, a styling block for each in the Style tab with Normal and Hover tabs, and a Hover Trigger (this container / direct parent container / custom class). No existing widget changed. See "Container extension" above for the full option list and the note about Elementor's Background Overlay sharing `:before`.
 - **1.6.0** — Webcasata Accordion: added **Open Accordion On → Click / Hover** (plus a **Hover Delay**), and an **Image Switch Animation** group (animation type, duration, easing). The old "Fade Transition (ms)" control is now "Animation Duration (ms)" and keeps its saved value; it previously had no visible effect because the image toggled between `display:none` and `display:block`, which CSS transitions can't animate — the new animations are keyframe-based, so they do play. Existing accordions default to **Fade**; set Animation to **None** to restore the old instant swap. Also: the side image is now matched to its accordion item by position instead of by file URL, so two items that use the same image no longer light up two images at once.
 - **1.5.1** — Split the Content Filter widget's Display toggles from four to seven: **Hide Author**, **Hide Comments** and **Hide Read More** are now their own toggles instead of being lumped under "Hide Meta Tags." In the Classic template these live in a different markup block (`card__footer`) than the date/category "meta" block (`card__meta`), so a single combined selector could never match both — this was reported as the Meta selector not fully working when trying to hide author/comments alongside it. The Display section's help text also now explicitly documents comma- vs. space-separating selectors, since space-separating them (which reads as "nested inside" in CSS, not "any of these") was the other cause of the reported issue.

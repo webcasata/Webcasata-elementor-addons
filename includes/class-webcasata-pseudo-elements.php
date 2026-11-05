@@ -33,6 +33,7 @@ use Elementor\Group_Control_Background;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Css_Filter;
+use Elementor\Group_Control_Typography;
 
 final class Webcasata_Pseudo_Elements {
 
@@ -67,6 +68,10 @@ final class Webcasata_Pseudo_Elements {
 		// Keeps a typed "content" string from breaking out of its CSS quotes.
 		add_filter( 'elementor/files/css/property', [ $this, 'escape_content_value' ], 10, 4 );
 
+		// Load the icon font that a pseudo-element's Content code needs.
+		add_action( 'elementor/frontend/container/before_render', [ $this, 'maybe_enqueue_icon_font' ] );
+		add_action( 'elementor/preview/enqueue_styles', [ $this, 'enqueue_all_icon_fonts' ] );
+
 		add_action( 'elementor/frontend/after_register_scripts', [ $this, 'register_scripts' ] );
 		add_action( 'elementor/frontend/after_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
@@ -88,6 +93,43 @@ final class Webcasata_Pseudo_Elements {
 	public function enqueue_scripts() {
 		// Tiny file; it only does work for containers using the "Custom class" trigger.
 		wp_enqueue_script( 'webcasata-pseudo-hover' );
+	}
+
+	/** Icon Font option => Elementor's registered style handle. */
+	private function icon_font_handles() {
+		return [
+			'fa-solid'   => 'elementor-icons-fa-solid',
+			'fa-regular' => 'elementor-icons-fa-regular',
+			'fa-brands'  => 'elementor-icons-fa-brands',
+			'eicons'     => 'elementor-icons',
+		];
+	}
+
+	private function enqueue_handle( $handle ) {
+		if ( wp_style_is( $handle, 'registered' ) ) {
+			wp_enqueue_style( $handle );
+		}
+	}
+
+	/** Front end: only the fonts this container actually uses. */
+	public function maybe_enqueue_icon_font( $element ) {
+		$handles = $this->icon_font_handles();
+		foreach ( $this->pseudos() as $pseudo ) {
+			if ( 'yes' !== $element->get_settings( $this->id( $pseudo, 'enable' ) ) ) {
+				continue;
+			}
+			$font = $element->get_settings( $this->id( $pseudo, 'font' ) );
+			if ( $font && isset( $handles[ $font ] ) ) {
+				$this->enqueue_handle( $handles[ $font ] );
+			}
+		}
+	}
+
+	/** Editor preview renders containers with JS templates, so PHP can't tell: load them all there. */
+	public function enqueue_all_icon_fonts() {
+		foreach ( $this->icon_font_handles() as $handle ) {
+			$this->enqueue_handle( $handle );
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -169,7 +211,9 @@ final class Webcasata_Pseudo_Elements {
 			$list     = 'hover' === $mode ? $this->hover_sel( $pseudo ) : $this->sel( $pseudo );
 			$resolved = [];
 			foreach ( $args['selectors'] as $key => $css ) {
-				$resolved[ str_replace( '{{SEL}}', $list, $key ) ] = $css;
+				// {{SEL}} = Normal or Hover list for the current tab; {{HOVER}} = always the Hover list.
+				$key = str_replace( [ '{{SEL}}', '{{HOVER}}' ], [ $list, $this->hover_sel( $pseudo ) ], $key );
+				$resolved[ $key ] = $css;
 			}
 			$args['selectors'] = $resolved;
 		}
@@ -242,6 +286,222 @@ final class Webcasata_Pseudo_Elements {
 		$element->end_controls_section();
 	}
 
+
+	/* ------------------------------------------------------------------
+	 * Presets (Phase 3)
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Each preset is a starting layer of CSS (Normal, Hover, and the container
+	 * itself). It is registered BEFORE the Normal/Hover controls, so anything the
+	 * user sets there lands later in the same rule and wins. The preset's own
+	 * knobs are CSS variables on the pseudo-element (--wpe-c1, --wpe-c2,
+	 * --wpe-size, --wpe-fx/--wpe-fy), each with a fallback in the CSS below.
+	 *
+	 * Transition speed/easing and the Hover Trigger come from the Hover tab,
+	 * exactly as for hand-made styles.
+	 */
+	private function presets() {
+		return [
+			'gradient-border' => [
+				'label'  => esc_html__( 'Gradient Border', 'webcasata-elementor-addons' ),
+				'normal' => 'top: 0; right: 0; bottom: 0; left: 0; width: auto; height: auto; box-sizing: border-box; padding: var(--wpe-size, 2px); border-radius: inherit; background: linear-gradient(135deg, var(--wpe-c1, #63b31e), var(--wpe-c2, #1e90ff)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;',
+				'hover'  => '',
+				'wrapper' => '',
+			],
+			'overlay'         => [
+				'label'  => esc_html__( 'Hover Overlay (fades in)', 'webcasata-elementor-addons' ),
+				'normal' => 'top: 0; right: 0; bottom: 0; left: 0; width: auto; height: auto; border-radius: inherit; background: var(--wpe-c1, rgba(0, 0, 0, 0.5)); opacity: 0; z-index: -1;',
+				'hover'  => 'opacity: 1;',
+				'wrapper' => 'isolation: isolate;',
+			],
+			'slide-fill'      => [
+				'label'  => esc_html__( 'Slide-In Fill', 'webcasata-elementor-addons' ),
+				'normal' => 'top: 0; left: 0; right: auto; bottom: auto; width: 100%; height: 100%; border-radius: inherit; background: var(--wpe-c1, #000000); z-index: -1; transform: translate(var(--wpe-fx, 0%), var(--wpe-fy, 100%));',
+				'hover'  => 'transform: translate(0%, 0%);',
+				'wrapper' => 'overflow: hidden; isolation: isolate;',
+			],
+			'ribbon'          => [
+				'label'  => esc_html__( 'Corner Ribbon', 'webcasata-elementor-addons' ),
+				'normal' => 'width: 150px; height: auto; top: 22px; bottom: auto; box-sizing: border-box; padding: 6px 0; background: var(--wpe-c1, #e63946); color: var(--wpe-c2, #ffffff); text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; line-height: 1.4; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); border-radius: 0;',
+				'hover'  => '',
+				'wrapper' => 'overflow: hidden;',
+			],
+			'underline'       => [
+				'label'  => esc_html__( 'Animated Underline', 'webcasata-elementor-addons' ),
+				'normal' => 'left: 0; bottom: 0; top: auto; right: auto; width: 0; height: var(--wpe-size, 3px); border-radius: 0; background: var(--wpe-c1, #63b31e);',
+				'hover'  => 'width: 100%;',
+				'wrapper' => '',
+			],
+		];
+	}
+
+	private function preset_controls( $element, $pseudo ) {
+		$preset_id = $this->id( $pseudo, 'preset' );
+		$options   = [ '' => esc_html__( 'None', 'webcasata-elementor-addons' ) ];
+		foreach ( $this->presets() as $slug => $def ) {
+			$options[ $slug ] = $def['label'];
+		}
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'preset',
+			[
+				'label'       => esc_html__( 'Style Preset', 'webcasata-elementor-addons' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '',
+				'options'     => $options,
+				'description' => esc_html__( 'A ready-made starting point. Anything you set in the Normal / Hover tabs below still overrides it.', 'webcasata-elementor-addons' ),
+			]
+		);
+
+		// One hidden control per preset carries its CSS; it only exists while that preset is chosen.
+		foreach ( $this->presets() as $slug => $def ) {
+			$selectors = [ '{{SEL}}' => $def['normal'] ];
+			if ( '' !== $def['hover'] ) {
+				$selectors['{{HOVER}}'] = $def['hover'];
+			}
+			if ( '' !== $def['wrapper'] ) {
+				$selectors['{{WRAPPER}}'] = $def['wrapper'];
+			}
+
+			$this->control(
+				$element,
+				$pseudo,
+				'normal',
+				'pre_' . str_replace( '-', '_', $slug ),
+				[
+					'type'      => Controls_Manager::HIDDEN,
+					'default'   => 'yes',
+					'condition' => [ $preset_id => $slug ],
+					'selectors' => $selectors,
+				]
+			);
+		}
+
+		$all = array_keys( $this->presets() );
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_c1',
+			[
+				'label'       => esc_html__( 'Preset Color', 'webcasata-elementor-addons' ),
+				'description' => esc_html__( 'Leave empty for the preset\'s own default.', 'webcasata-elementor-addons' ),
+				'type'        => Controls_Manager::COLOR,
+				'selectors'   => [ '{{SEL}}' => '--wpe-c1: {{VALUE}};' ],
+				'condition'   => [ $preset_id => $all ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_c2',
+			[
+				'label'       => esc_html__( 'Preset Color 2', 'webcasata-elementor-addons' ),
+				'description' => esc_html__( 'Gradient Border: the second gradient colour. Corner Ribbon: the text colour.', 'webcasata-elementor-addons' ),
+				'type'        => Controls_Manager::COLOR,
+				'selectors'   => [ '{{SEL}}' => '--wpe-c2: {{VALUE}};' ],
+				'condition'   => [ $preset_id => [ 'gradient-border', 'ribbon' ] ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_size',
+			[
+				'label'      => esc_html__( 'Border Width / Thickness', 'webcasata-elementor-addons' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [ 'px' => [ 'min' => 1, 'max' => 40 ] ],
+				'selectors'  => [ '{{SEL}}' => '--wpe-size: {{SIZE}}{{UNIT}};' ],
+				'condition'  => [ $preset_id => [ 'gradient-border', 'underline' ] ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_dir',
+			[
+				'label'                => esc_html__( 'Slide In From', 'webcasata-elementor-addons' ),
+				'type'                 => Controls_Manager::SELECT,
+				'default'              => 'bottom',
+				'options'              => [
+					'bottom' => esc_html__( 'Bottom', 'webcasata-elementor-addons' ),
+					'top'    => esc_html__( 'Top', 'webcasata-elementor-addons' ),
+					'left'   => esc_html__( 'Left', 'webcasata-elementor-addons' ),
+					'right'  => esc_html__( 'Right', 'webcasata-elementor-addons' ),
+				],
+				'selectors_dictionary' => [
+					'bottom' => '--wpe-fx: 0%; --wpe-fy: 100%;',
+					'top'    => '--wpe-fx: 0%; --wpe-fy: -100%;',
+					'left'   => '--wpe-fx: -100%; --wpe-fy: 0%;',
+					'right'  => '--wpe-fx: 100%; --wpe-fy: 0%;',
+				],
+				'selectors'            => [ '{{SEL}}' => '{{VALUE}}' ],
+				'condition'            => [ $preset_id => 'slide-fill' ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_corner',
+			[
+				'label'                => esc_html__( 'Ribbon Corner', 'webcasata-elementor-addons' ),
+				'type'                 => Controls_Manager::SELECT,
+				'default'              => 'top-right',
+				'options'              => [
+					'top-right' => esc_html__( 'Top right', 'webcasata-elementor-addons' ),
+					'top-left'  => esc_html__( 'Top left', 'webcasata-elementor-addons' ),
+				],
+				'selectors_dictionary' => [
+					'top-right' => 'right: -40px; left: auto; transform: rotate(45deg);',
+					'top-left'  => 'left: -40px; right: auto; transform: rotate(-45deg);',
+				],
+				'selectors'            => [ '{{SEL}}' => '{{VALUE}}' ],
+				'condition'            => [ $preset_id => 'ribbon' ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_text',
+			[
+				'label'     => esc_html__( 'Ribbon Text', 'webcasata-elementor-addons' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => 'NEW',
+				'selectors' => [ '{{SEL}}' => 'content: "{{VALUE}}";' ],
+				'condition' => [ $preset_id => 'ribbon' ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'pre_note',
+			[
+				'type'            => Controls_Manager::RAW_HTML,
+				'raw'             => esc_html__( 'Hover presets use the Hover Trigger and Transition from the Hover tab. Overlay, Slide-In Fill and Corner Ribbon also set the container to overflow/isolation as needed.', 'webcasata-elementor-addons' ),
+				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
+				'condition'       => [ $preset_id . '!' => '' ],
+			]
+		);
+	}
+
 	/* ------------------------------------------------------------------
 	 * Style tab
 	 * ------------------------------------------------------------------ */
@@ -260,6 +520,8 @@ final class Webcasata_Pseudo_Elements {
 					'condition' => [ $this->id( $pseudo, 'enable' ) => 'yes' ],
 				]
 			);
+
+			$this->preset_controls( $element, $pseudo );
 
 			$element->start_controls_tabs( $this->id( $pseudo, 'tabs' ) );
 
@@ -337,6 +599,19 @@ final class Webcasata_Pseudo_Elements {
 			Group_Control_Background::class,
 			'bg',
 			[ 'types' => [ 'classic', 'gradient' ] ]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			$mode,
+			'color',
+			[
+				'label'     => esc_html__( 'Text / Icon Color', 'webcasata-elementor-addons' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [ '{{SEL}}' => 'color: {{VALUE}};' ],
+				'separator' => 'before',
+			]
 		);
 
 		$this->control(
@@ -510,6 +785,58 @@ final class Webcasata_Pseudo_Elements {
 				'description' => esc_html__( 'Optional. An icon-font code such as \f101 also works.', 'webcasata-elementor-addons' ),
 				'selectors'   => [ '{{SEL}}' => 'content: "{{VALUE}}";' ],
 			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'font',
+			[
+				'label'               => esc_html__( 'Icon Font', 'webcasata-elementor-addons' ),
+				'description'         => esc_html__( 'Pick the font that the Content code belongs to. Without it an icon code shows as an empty box. Elementor\'s Font Awesome / eicons are loaded automatically.', 'webcasata-elementor-addons' ),
+				'type'                => Controls_Manager::SELECT,
+				'default'             => '',
+				'options'             => [
+					''           => esc_html__( 'None (normal text)', 'webcasata-elementor-addons' ),
+					'fa-solid'   => esc_html__( 'Font Awesome — Solid', 'webcasata-elementor-addons' ),
+					'fa-regular' => esc_html__( 'Font Awesome — Regular', 'webcasata-elementor-addons' ),
+					'fa-brands'  => esc_html__( 'Font Awesome — Brands', 'webcasata-elementor-addons' ),
+					'eicons'     => esc_html__( 'Elementor Icons (eicons)', 'webcasata-elementor-addons' ),
+				],
+				'selectors_dictionary' => [
+					'fa-solid'   => 'font-family: "Font Awesome 5 Free", "Font Awesome 6 Free"; font-weight: 900; font-style: normal;',
+					'fa-regular' => 'font-family: "Font Awesome 5 Free", "Font Awesome 6 Free"; font-weight: 400; font-style: normal;',
+					'fa-brands'  => 'font-family: "Font Awesome 5 Brands", "Font Awesome 6 Brands"; font-weight: 400; font-style: normal;',
+					'eicons'     => 'font-family: eicons; font-weight: 400; font-style: normal;',
+				],
+				'selectors'           => [ '{{SEL}}' => '{{VALUE}}' ],
+			]
+		);
+
+		$this->control(
+			$element,
+			$pseudo,
+			'normal',
+			'center',
+			[
+				'label'        => esc_html__( 'Center Content', 'webcasata-elementor-addons' ),
+				'description'  => esc_html__( 'Centers the text/icon horizontally and vertically inside the element\'s Width and Height.', 'webcasata-elementor-addons' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'selectors'    => [
+					'{{SEL}}' => 'display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1;',
+				],
+			]
+		);
+
+		$this->group(
+			$element,
+			$pseudo,
+			'normal',
+			Group_Control_Typography::class,
+			'typography',
+			[]
 		);
 
 		$this->control(
@@ -747,7 +1074,7 @@ final class Webcasata_Pseudo_Elements {
 		if ( ! is_string( $value ) || empty( $control['name'] ) ) {
 			return $value;
 		}
-		if ( ! preg_match( '/^wpe_(before|after)_content$/', $control['name'] ) ) {
+		if ( ! preg_match( '/^wpe_(before|after)_(content|pre_text)$/', $control['name'] ) ) {
 			return $value;
 		}
 

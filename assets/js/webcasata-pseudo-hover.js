@@ -4,6 +4,7 @@
  * Used by two features:
  *   - Container Pseudo Elements (:before / :after) -> toggles .wpe-before-hover / .wpe-after-hover
  *   - Style On Parent Hover (any widget/container)  -> toggles .wph-hover
+ *   - Webcasata Icon Box hover trigger              -> toggles .wib-hover
  *
  * "This container" / "Direct parent container" are pure CSS. Only "Custom
  * class" needs script, because Elementor cannot put a typed class name into a
@@ -17,7 +18,7 @@
 	"use strict";
 
 	var SAFE_CLASS = /^[A-Za-z_][A-Za-z0-9_-]*$/;
-	var WATCHED_SETTING = /^(wpe_(before|after)_(enable|h_trigger|h_class)|wph_(enable|trigger|class))$/;
+	var WATCHED_SETTING = /^(wpe_(before|after)_(enable|h_trigger|h_class)|wph_(enable|trigger|class)|wib_(trigger|trigger_class))$/;
 
 	function register() {
 		if (
@@ -68,6 +69,11 @@
 				// Style On Parent Hover (any widget / container).
 				if (settings.wph_enable === "yes" && settings.wph_trigger === "custom") {
 					self.watch("wph-hover", settings.wph_class);
+				}
+
+				// Webcasata Icon Box: "Hover Styles Apply When Hovering -> Custom class".
+				if (settings.wib_trigger === "custom") {
+					self.watch("wib-hover", settings.wib_trigger_class);
 				}
 			},
 

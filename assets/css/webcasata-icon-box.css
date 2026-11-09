@@ -1,0 +1,201 @@
+/* ==========================================================================
+   Webcasata Icon Box
+   Markup:
+     .wib-wrapper
+       .wib-icon-wrap > .wib-icon ( .wib-icon-bg + .wib-icon-glyph )
+       .wib-content   > .wib-sep? , .wib-title ( .wib-focus ), .wib-sep?, .wib-desc
+   Everything user-tunable arrives from Elementor's generated CSS; this file
+   only holds the structural defaults.
+   ========================================================================== */
+
+.elementor-widget-webcasata-icon-box {
+	--wib-dur: 0.3s;
+	--wib-ease: ease;
+}
+
+.elementor-widget-webcasata-icon-box .wib-wrapper {
+	position: relative; /* anchor for the :before / :after pseudo-elements */
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 15px;
+	box-sizing: border-box;
+}
+
+/* ---- icon ---------------------------------------------------------------- */
+
+.elementor-widget-webcasata-icon-box .wib-icon-wrap {
+	display: flex;
+	justify-content: flex-start;
+	flex: 0 0 auto;
+	min-width: 0;
+}
+
+/* Left / right layouts: the icon column must not stretch or shrink. */
+.elementor-widget-webcasata-icon-box .wib-icon {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	flex: 0 0 auto;
+	font-size: 50px;
+	line-height: 1;
+	color: #69727d;
+	text-decoration: none;
+	transition-property: color, transform, width, height, padding;
+	transition-duration: var(--wib-dur);
+	transition-timing-function: var(--wib-ease);
+}
+
+.elementor-widget-webcasata-icon-box .wib-icon-bg {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	box-sizing: border-box;
+	transition-property: background-color, background-image, border-color, border-width, border-radius, box-shadow, opacity;
+	transition-duration: var(--wib-dur);
+	transition-timing-function: var(--wib-ease);
+}
+
+.elementor-widget-webcasata-icon-box .wib-icon-glyph {
+	position: relative;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+}
+
+.elementor-widget-webcasata-icon-box .wib-icon-glyph i,
+.elementor-widget-webcasata-icon-box .wib-icon-glyph svg {
+	display: block;
+	width: 1em;
+	height: 1em;
+	line-height: 1;
+	font-size: inherit;
+}
+
+.elementor-widget-webcasata-icon-box .wib-icon-glyph svg {
+	fill: currentColor;
+}
+
+/* ---- content ------------------------------------------------------------- */
+
+.elementor-widget-webcasata-icon-box .wib-content {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.elementor-widget-webcasata-icon-box .wib-title {
+	margin: 0 0 10px;
+	/* shrink-wrap so a gradient / image fill spans the TEXT, not the whole row */
+	width: fit-content;
+	max-width: 100%;
+	transition-property: color, filter, text-shadow, -webkit-text-stroke-color;
+	transition-duration: var(--wib-dur);
+	transition-timing-function: var(--wib-ease);
+}
+
+.elementor-widget-webcasata-icon-box .wib-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.elementor-widget-webcasata-icon-box .wib-focus {
+	/* keeps the box-decoration (gradient) continuous when the focused text wraps */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+.elementor-widget-webcasata-icon-box .wib-desc {
+	margin: 0;
+	max-width: 100%;
+	transition-property: color;
+	transition-duration: var(--wib-dur);
+	transition-timing-function: var(--wib-ease);
+}
+
+/* ---- title separator ----------------------------------------------------- */
+
+.elementor-widget-webcasata-icon-box .wib-sep {
+	--wib-sep-c: #d5d8dc;
+	--wib-sep-t: 2px;
+	--wib-sep-ic: var(--wib-sep-c);
+	--wib-sep-isz: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	width: 60px;
+	max-width: 100%;
+	margin: 0 0 10px;
+	transition-property: width;
+	transition-duration: var(--wib-dur);
+	transition-timing-function: var(--wib-ease);
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-line {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 0;
+	border-top: var(--wib-sep-t) solid var(--wib-sep-c);
+	transition: border-color var(--wib-dur) var(--wib-ease);
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-dashed .wib-sep-line {
+	border-top-style: dashed;
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-dotted .wib-sep-line {
+	border-top-style: dotted;
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-double .wib-sep-line {
+	border-top-style: double;
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-icon {
+	display: inline-flex;
+	flex: 0 0 auto;
+	font-size: var(--wib-sep-isz);
+	line-height: 1;
+	color: var(--wib-sep-ic);
+	transition: color var(--wib-dur) var(--wib-ease);
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-icon i,
+.elementor-widget-webcasata-icon-box .wib-sep-icon svg {
+	display: block;
+	width: 1em;
+	height: 1em;
+	font-size: inherit;
+}
+
+.elementor-widget-webcasata-icon-box .wib-sep-icon svg {
+	fill: currentColor;
+}
+
+/* A separator that sits ABOVE the title needs the margin on the other side. */
+.elementor-widget-webcasata-icon-box .wib-content > .wib-sep:first-child {
+	margin-top: 0;
+}
+
+/* Self-centred separator when the box is centre / end aligned is handled by
+   .wib-content { align-items } from the Alignment control. */
+
+@media (prefers-reduced-motion: reduce) {
+	.elementor-widget-webcasata-icon-box .wib-icon,
+	.elementor-widget-webcasata-icon-box .wib-icon-bg,
+	.elementor-widget-webcasata-icon-box .wib-title,
+	.elementor-widget-webcasata-icon-box .wib-desc,
+	.elementor-widget-webcasata-icon-box .wib-sep,
+	.elementor-widget-webcasata-icon-box .wib-sep-line,
+	.elementor-widget-webcasata-icon-box .wib-sep-icon {
+		transition-duration: 0.01ms !important;
+	}
+}

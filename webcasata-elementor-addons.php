@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Webcasata Elementor Addons
- * Description: Custom Elementor widgets built for the Qyrus site, grouped under their own "Webcasata" category in the widget panel. Includes Webcasata Accordion (left/right accordion where the image swaps per item, with its own mobile inline-image layout), Webcasata Feature Grid (icon + title + description cards in a responsive grid), Webcasata Icon Scroll (infinite vertical/horizontal auto-scrolling icon wall), and Webcasata Content Filter (drops a saved Webcasata Content Filter plugin filter onto the page). Also extends Elementor's Container with :before / :after pseudo-element controls (Normal + Hover, no custom CSS), and adds a "Style On Parent Hover" section to every widget and container.
- * Version:     1.9.0
+ * Description: Custom Elementor widgets built for the Qyrus site, grouped under their own "Webcasata" category in the widget panel. Includes Webcasata Accordion (left/right accordion where the image swaps per item, with its own mobile inline-image layout), Webcasata Feature Grid (icon + title + description cards in a responsive grid), Webcasata Icon Scroll (infinite vertical/horizontal auto-scrolling icon wall), and Webcasata Icon Box (icon with a styleable background, focused title, text fill/stroke/shadow, title separator, pseudo-elements), and Webcasata Content Filter (drops a saved Webcasata Content Filter plugin filter onto the page). Also extends Elementor's Container with :before / :after pseudo-element controls (Normal + Hover, no custom CSS), and adds a "Style On Parent Hover" section to every widget and container.
+ * Version:     1.9.3
  * Author:      Webcasata
  * Author URI:  https://webcasata.com
  * Text Domain: webcasata-elementor-addons
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'QYRUS_ACCORDION_VERSION', '1.9.0' );
+define( 'QYRUS_ACCORDION_VERSION', '1.9.3' );
 define( 'QYRUS_ACCORDION_URL', plugin_dir_url( __FILE__ ) );
 define( 'QYRUS_ACCORDION_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -46,6 +46,18 @@ final class Qyrus_Accordion_Plugin {
 		add_action( 'elementor/elements/categories_registered', [ $this, 'register_categories' ] );
 		add_action( 'elementor/frontend/after_register_scripts', [ $this, 'register_scripts' ] );
 		add_action( 'elementor/frontend/after_register_styles', [ $this, 'register_styles' ] );
+		// Diagnostics: only does anything when the editor URL has &wib_debug=1.
+		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'enqueue_editor_debug' ] );
+	}
+
+	public function enqueue_editor_debug() {
+		wp_enqueue_script(
+			'webcasata-editor-debug',
+			QYRUS_ACCORDION_URL . 'assets/js/webcasata-editor-debug.js',
+			[ 'elementor-editor' ],
+			QYRUS_ACCORDION_VERSION,
+			true
+		);
 	}
 
 	public function register_categories( $elements_manager ) {
@@ -68,10 +80,12 @@ final class Qyrus_Accordion_Plugin {
 		require_once QYRUS_ACCORDION_PATH . 'widgets/class-qyrus-home-accordion-widget.php';
 		require_once QYRUS_ACCORDION_PATH . 'widgets/class-qyrus-feature-grid-widget.php';
 		require_once QYRUS_ACCORDION_PATH . 'widgets/class-qyrus-icon-marquee-widget.php';
+		require_once QYRUS_ACCORDION_PATH . 'widgets/class-webcasata-icon-box-widget.php';
 
 		$widgets_manager->register( new \Qyrus_Home_Accordion_Widget() );
 		$widgets_manager->register( new \Qyrus_Feature_Grid_Widget() );
 		$widgets_manager->register( new \Qyrus_Icon_Marquee_Widget() );
+		$widgets_manager->register( new \Webcasata_Icon_Box_Widget() );
 
 		// Soft dependency: only register this widget if the separate
 		// "Webcasata Content Filter" plugin is active, since it wraps
@@ -114,6 +128,13 @@ final class Qyrus_Accordion_Plugin {
 		wp_register_style(
 			'qyrus-feature-grid',
 			QYRUS_ACCORDION_URL . 'assets/css/qyrus-feature-grid.css',
+			[],
+			QYRUS_ACCORDION_VERSION
+		);
+
+		wp_register_style(
+			'webcasata-icon-box',
+			QYRUS_ACCORDION_URL . 'assets/css/webcasata-icon-box.css',
 			[],
 			QYRUS_ACCORDION_VERSION
 		);

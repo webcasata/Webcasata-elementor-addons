@@ -41,6 +41,14 @@ final class Webcasata_Pseudo_Elements {
 
 	private static $instance = null;
 
+	/**
+	 * Where the pseudo-elements live. For a Container it is the container itself
+	 * (suffix ''); for a widget it is an inner element, e.g. ' .wib-wrapper'.
+	 */
+	private $suffix       = '';
+	private $layout_tab   = Controls_Manager::TAB_LAYOUT;
+	private $is_container = true;
+
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
@@ -70,6 +78,7 @@ final class Webcasata_Pseudo_Elements {
 
 		// Load the icon font that a pseudo-element's Content code needs.
 		add_action( 'elementor/frontend/container/before_render', [ $this, 'maybe_enqueue_icon_font' ] );
+		add_action( 'elementor/frontend/widget/before_render', [ $this, 'maybe_enqueue_icon_font' ] );
 		add_action( 'elementor/preview/enqueue_styles', [ $this, 'enqueue_all_icon_fonts' ] );
 
 		add_action( 'elementor/frontend/after_register_scripts', [ $this, 'register_scripts' ] );
@@ -145,9 +154,27 @@ final class Webcasata_Pseudo_Elements {
 		return self::PREFIX . $pseudo . '_' . $name;
 	}
 
-	/** Selector for the pseudo-element itself: {{WRAPPER}}::before */
+	/** Selector for the pseudo-element itself: {{WRAPPER}}::before (or {{WRAPPER}} .inner::before). */
 	private function sel( $pseudo ) {
-		return '{{WRAPPER}}::' . $pseudo;
+		return '{{WRAPPER}}' . $this->suffix . '::' . $pseudo;
+	}
+
+	/**
+	 * Lets a widget reuse the whole :before / :after feature on one of its own
+	 * inner elements. Call from the widget's register_controls() AFTER its own
+	 * sections: the switches go into the Content tab, the style blocks into Style.
+	 */
+	public function register_on_widget( $widget, $inner_selector ) {
+		$this->suffix       = (string) $inner_selector;
+		$this->layout_tab   = Controls_Manager::TAB_CONTENT;
+		$this->is_container = false;
+
+		$this->add_layout_controls( $widget );
+		$this->add_style_controls( $widget );
+
+		$this->suffix       = '';
+		$this->layout_tab   = Controls_Manager::TAB_LAYOUT;
+		$this->is_container = true;
 	}
 
 	/**
@@ -167,10 +194,11 @@ final class Webcasata_Pseudo_Elements {
 		return implode(
 			', ',
 			[
-				'{{WRAPPER}}' . $gate . 'self:hover' . $pe,
-				'.elementor-element:hover > .elementor-element-{{ID}}' . $gate . 'parent' . $pe,
-				'.elementor-element:hover > .e-con-inner > .elementor-element-{{ID}}' . $gate . 'parent' . $pe,
-				'{{WRAPPER}}' . $gate . 'custom.wpe-' . $pseudo . '-hover' . $pe,
+				'{{WRAPPER}}' . $gate . 'self:hover' . $this->suffix . $pe,
+				'.elementor-element:hover > .elementor-element-{{ID}}' . $gate . 'parent' . $this->suffix . $pe,
+				'.elementor-element:hover > .e-con-inner > .elementor-element-{{ID}}' . $gate . 'parent' . $this->suffix . $pe,
+				'.elementor-element:hover > .elementor-widget-wrap > .elementor-element-{{ID}}' . $gate . 'parent' . $this->suffix . $pe,
+				'{{WRAPPER}}' . $gate . 'custom.wpe-' . $pseudo . '-hover' . $this->suffix . $pe,
 			]
 		);
 	}
@@ -211,9 +239,7 @@ final class Webcasata_Pseudo_Elements {
 			$list     = 'hover' === $mode ? $this->hover_sel( $pseudo ) : $this->sel( $pseudo );
 			$resolved = [];
 			foreach ( $args['selectors'] as $key => $css ) {
-				// {{SEL}} = Normal or Hover list for the current tab; {{HOVER}} = always the Hover list.
-				$key = str_replace( [ '{{SEL}}', '{{HOVER}}' ], [ $list, $this->hover_sel( $pseudo ) ], $key );
-				$resolved[ $key ] = $css;
+				$resolved[ str_replace( '{{SEL}}', $list, $key ) ] = $css;
 			}
 			$args['selectors'] = $resolved;
 		}
@@ -245,7 +271,7 @@ final class Webcasata_Pseudo_Elements {
 			'wpe_section_layout',
 			[
 				'label' => esc_html__( 'Pseudo Elements', 'webcasata-elementor-addons' ),
-				'tab'   => Controls_Manager::TAB_LAYOUT,
+				'tab'   => $this->layout_tab,
 			]
 		);
 
@@ -275,7 +301,7 @@ final class Webcasata_Pseudo_Elements {
 					// the Background Overlay layer: full-size, and it copies the container's
 					// border), so ::before also gets its inherited border switched off.
 					'selectors'    => [
-						$this->sel( $pseudo ) => 'before' === $pseudo
+						$this->sel( $pseudo ) => ( 'before' === $pseudo && $this->is_container )
 							? 'content: ""; display: block; border: 0 none;'
 							: 'content: ""; display: block;',
 					],
@@ -286,221 +312,6 @@ final class Webcasata_Pseudo_Elements {
 		$element->end_controls_section();
 	}
 
-
-	/* ------------------------------------------------------------------
-	 * Presets (Phase 3)
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * Each preset is a starting layer of CSS (Normal, Hover, and the container
-	 * itself). It is registered BEFORE the Normal/Hover controls, so anything the
-	 * user sets there lands later in the same rule and wins. The preset's own
-	 * knobs are CSS variables on the pseudo-element (--wpe-c1, --wpe-c2,
-	 * --wpe-size, --wpe-fx/--wpe-fy), each with a fallback in the CSS below.
-	 *
-	 * Transition speed/easing and the Hover Trigger come from the Hover tab,
-	 * exactly as for hand-made styles.
-	 */
-	private function presets() {
-		return [
-			'gradient-border' => [
-				'label'  => esc_html__( 'Gradient Border', 'webcasata-elementor-addons' ),
-				'normal' => 'top: 0; right: 0; bottom: 0; left: 0; width: auto; height: auto; box-sizing: border-box; padding: var(--wpe-size, 2px); border-radius: inherit; background: linear-gradient(135deg, var(--wpe-c1, #63b31e), var(--wpe-c2, #1e90ff)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;',
-				'hover'  => '',
-				'wrapper' => '',
-			],
-			'overlay'         => [
-				'label'  => esc_html__( 'Hover Overlay (fades in)', 'webcasata-elementor-addons' ),
-				'normal' => 'top: 0; right: 0; bottom: 0; left: 0; width: auto; height: auto; border-radius: inherit; background: var(--wpe-c1, rgba(0, 0, 0, 0.5)); opacity: 0; z-index: -1;',
-				'hover'  => 'opacity: 1;',
-				'wrapper' => 'isolation: isolate;',
-			],
-			'slide-fill'      => [
-				'label'  => esc_html__( 'Slide-In Fill', 'webcasata-elementor-addons' ),
-				'normal' => 'top: 0; left: 0; right: auto; bottom: auto; width: 100%; height: 100%; border-radius: inherit; background: var(--wpe-c1, #000000); z-index: -1; transform: translate(var(--wpe-fx, 0%), var(--wpe-fy, 100%));',
-				'hover'  => 'transform: translate(0%, 0%);',
-				'wrapper' => 'overflow: hidden; isolation: isolate;',
-			],
-			'ribbon'          => [
-				'label'  => esc_html__( 'Corner Ribbon', 'webcasata-elementor-addons' ),
-				'normal' => 'width: 150px; height: auto; top: 22px; bottom: auto; box-sizing: border-box; padding: 6px 0; background: var(--wpe-c1, #e63946); color: var(--wpe-c2, #ffffff); text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; line-height: 1.4; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); border-radius: 0;',
-				'hover'  => '',
-				'wrapper' => 'overflow: hidden;',
-			],
-			'underline'       => [
-				'label'  => esc_html__( 'Animated Underline', 'webcasata-elementor-addons' ),
-				'normal' => 'left: 0; bottom: 0; top: auto; right: auto; width: 0; height: var(--wpe-size, 3px); border-radius: 0; background: var(--wpe-c1, #63b31e);',
-				'hover'  => 'width: 100%;',
-				'wrapper' => '',
-			],
-		];
-	}
-
-	private function preset_controls( $element, $pseudo ) {
-		$preset_id = $this->id( $pseudo, 'preset' );
-		$options   = [ '' => esc_html__( 'None', 'webcasata-elementor-addons' ) ];
-		foreach ( $this->presets() as $slug => $def ) {
-			$options[ $slug ] = $def['label'];
-		}
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'preset',
-			[
-				'label'       => esc_html__( 'Style Preset', 'webcasata-elementor-addons' ),
-				'type'        => Controls_Manager::SELECT,
-				'default'     => '',
-				'options'     => $options,
-				'description' => esc_html__( 'A ready-made starting point. Anything you set in the Normal / Hover tabs below still overrides it.', 'webcasata-elementor-addons' ),
-			]
-		);
-
-		// One hidden control per preset carries its CSS; it only exists while that preset is chosen.
-		foreach ( $this->presets() as $slug => $def ) {
-			$selectors = [ '{{SEL}}' => $def['normal'] ];
-			if ( '' !== $def['hover'] ) {
-				$selectors['{{HOVER}}'] = $def['hover'];
-			}
-			if ( '' !== $def['wrapper'] ) {
-				$selectors['{{WRAPPER}}'] = $def['wrapper'];
-			}
-
-			$this->control(
-				$element,
-				$pseudo,
-				'normal',
-				'pre_' . str_replace( '-', '_', $slug ),
-				[
-					'type'      => Controls_Manager::HIDDEN,
-					'default'   => 'yes',
-					'condition' => [ $preset_id => $slug ],
-					'selectors' => $selectors,
-				]
-			);
-		}
-
-		$all = array_keys( $this->presets() );
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_c1',
-			[
-				'label'       => esc_html__( 'Preset Color', 'webcasata-elementor-addons' ),
-				'description' => esc_html__( 'Leave empty for the preset\'s own default.', 'webcasata-elementor-addons' ),
-				'type'        => Controls_Manager::COLOR,
-				'selectors'   => [ '{{SEL}}' => '--wpe-c1: {{VALUE}};' ],
-				'condition'   => [ $preset_id => $all ],
-			]
-		);
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_c2',
-			[
-				'label'       => esc_html__( 'Preset Color 2', 'webcasata-elementor-addons' ),
-				'description' => esc_html__( 'Gradient Border: the second gradient colour. Corner Ribbon: the text colour.', 'webcasata-elementor-addons' ),
-				'type'        => Controls_Manager::COLOR,
-				'selectors'   => [ '{{SEL}}' => '--wpe-c2: {{VALUE}};' ],
-				'condition'   => [ $preset_id => [ 'gradient-border', 'ribbon' ] ],
-			]
-		);
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_size',
-			[
-				'label'      => esc_html__( 'Border Width / Thickness', 'webcasata-elementor-addons' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [ 'px' => [ 'min' => 1, 'max' => 40 ] ],
-				'selectors'  => [ '{{SEL}}' => '--wpe-size: {{SIZE}}{{UNIT}};' ],
-				'condition'  => [ $preset_id => [ 'gradient-border', 'underline' ] ],
-			]
-		);
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_dir',
-			[
-				'label'                => esc_html__( 'Slide In From', 'webcasata-elementor-addons' ),
-				'type'                 => Controls_Manager::SELECT,
-				'default'              => 'bottom',
-				'options'              => [
-					'bottom' => esc_html__( 'Bottom', 'webcasata-elementor-addons' ),
-					'top'    => esc_html__( 'Top', 'webcasata-elementor-addons' ),
-					'left'   => esc_html__( 'Left', 'webcasata-elementor-addons' ),
-					'right'  => esc_html__( 'Right', 'webcasata-elementor-addons' ),
-				],
-				'selectors_dictionary' => [
-					'bottom' => '--wpe-fx: 0%; --wpe-fy: 100%;',
-					'top'    => '--wpe-fx: 0%; --wpe-fy: -100%;',
-					'left'   => '--wpe-fx: -100%; --wpe-fy: 0%;',
-					'right'  => '--wpe-fx: 100%; --wpe-fy: 0%;',
-				],
-				'selectors'            => [ '{{SEL}}' => '{{VALUE}}' ],
-				'condition'            => [ $preset_id => 'slide-fill' ],
-			]
-		);
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_corner',
-			[
-				'label'                => esc_html__( 'Ribbon Corner', 'webcasata-elementor-addons' ),
-				'type'                 => Controls_Manager::SELECT,
-				'default'              => 'top-right',
-				'options'              => [
-					'top-right' => esc_html__( 'Top right', 'webcasata-elementor-addons' ),
-					'top-left'  => esc_html__( 'Top left', 'webcasata-elementor-addons' ),
-				],
-				'selectors_dictionary' => [
-					'top-right' => 'right: -40px; left: auto; transform: rotate(45deg);',
-					'top-left'  => 'left: -40px; right: auto; transform: rotate(-45deg);',
-				],
-				'selectors'            => [ '{{SEL}}' => '{{VALUE}}' ],
-				'condition'            => [ $preset_id => 'ribbon' ],
-			]
-		);
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_text',
-			[
-				'label'     => esc_html__( 'Ribbon Text', 'webcasata-elementor-addons' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => 'NEW',
-				'selectors' => [ '{{SEL}}' => 'content: "{{VALUE}}";' ],
-				'condition' => [ $preset_id => 'ribbon' ],
-			]
-		);
-
-		$this->control(
-			$element,
-			$pseudo,
-			'normal',
-			'pre_note',
-			[
-				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => esc_html__( 'Hover presets use the Hover Trigger and Transition from the Hover tab. Overlay, Slide-In Fill and Corner Ribbon also set the container to overflow/isolation as needed.', 'webcasata-elementor-addons' ),
-				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
-				'condition'       => [ $preset_id . '!' => '' ],
-			]
-		);
-	}
 
 	/* ------------------------------------------------------------------
 	 * Style tab
@@ -520,8 +331,6 @@ final class Webcasata_Pseudo_Elements {
 					'condition' => [ $this->id( $pseudo, 'enable' ) => 'yes' ],
 				]
 			);
-
-			$this->preset_controls( $element, $pseudo );
 
 			$element->start_controls_tabs( $this->id( $pseudo, 'tabs' ) );
 
@@ -766,7 +575,7 @@ final class Webcasata_Pseudo_Elements {
 			'note',
 			[
 				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => 'before' === $pseudo
+				'raw'             => ( 'before' === $pseudo && $this->is_container )
 					? esc_html__( 'Elementor draws its Background Overlay with :before too, so by default this layer already covers the whole container (with the container\'s rounded corners). Do not combine it with a Background Overlay — use :after for that. Set Width/Height/Offset to resize it.', 'webcasata-elementor-addons' )
 					: esc_html__( 'This element is invisible until it has a size: set Width/Height, or switch on "Fill container".', 'webcasata-elementor-addons' ),
 				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
@@ -895,7 +704,7 @@ final class Webcasata_Pseudo_Elements {
 				'return_value' => 'yes',
 				'selectors'    => [
 					'{{SEL}}'    => 'z-index: -1;',
-					'{{WRAPPER}}' => 'isolation: isolate;',
+					'{{WRAPPER}}' . $this->suffix => 'isolation: isolate;',
 				],
 			]
 		);
@@ -1074,7 +883,7 @@ final class Webcasata_Pseudo_Elements {
 		if ( ! is_string( $value ) || empty( $control['name'] ) ) {
 			return $value;
 		}
-		if ( ! preg_match( '/^wpe_(before|after)_(content|pre_text)$/', $control['name'] ) ) {
+		if ( ! preg_match( '/^wpe_(before|after)_content$/', $control['name'] ) ) {
 			return $value;
 		}
 

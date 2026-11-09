@@ -9,11 +9,12 @@ Custom Elementor widgets built for the Qyrus site, plus an extension that adds `
 
 ## Finding the widgets in Elementor
 
-All three widgets are registered under their own category in the widget panel — look for the **"Webcasata"** group (it sorts alphabetically among the other categories like Layout, Basic, General, WordPress, etc.). Inside it you'll find:
+All the widgets are registered under their own category in the widget panel — look for the **"Webcasata"** group (it sorts alphabetically among the other categories like Layout, Basic, General, WordPress, etc.). Inside it you'll find:
 
 - **Webcasata Accordion**
 - **Webcasata Feature Grid**
 - **Webcasata Icon Scroll**
+- **Webcasata Icon Box**
 - **Webcasata Content Filter** *(only appears if the separate Webcasata Content Filter plugin is active)*
 
 You can also just type "webcasata" (or the widget's function, e.g. "accordion", "marquee", "scroll") into the widget search box at the top of the panel.
@@ -64,7 +65,24 @@ An infinite auto-scrolling wall of icons/logos (integration badges, client logos
   - **Icon Box** — **Logo Width**, **Logo Height**, padding, background color, border, **Border Radius**, box shadow, and a **Grayscale Until Hover** toggle (icons are muted grayscale until hovered, then show full color).
   - **Caption** — typography, color, spacing (only relevant when "Show Icon Name" is on).
 
-### 4. Webcasata Content Filter
+### 4. Webcasata Icon Box
+
+Elementor's Icon Box with the parts it lacks: a real **background around the icon** (with its own hover state), hover styling that can be driven by the widget, its parent container or any custom class, a **focused title**, text fill / stroke / shadow effects, a **title separator**, and `:before` / `:after` pseudo-elements.
+
+- **Content → Icon Box:** Icon, Title, Description, Link, Title HTML Tag. Put words between `{{` and `}}` in the Title to style them separately, e.g. `We build {{lasting}} things`. (On-canvas inline editing of the title is not available because of the `{{ }}` syntax — edit it in the panel.)
+- **Content → Title Separator:** Show Separator, Position (above / below the title), Style (line, dashed, dotted, double, or line with icon) and the separator icon.
+- **Content → Pseudo Elements:** the same `:before` / `:after` switches as the Container, applied to the whole icon box. Their styling blocks appear in the Style tab (Normal / Hover, Hover Trigger, Icon Font, Center Content, transforms, etc. — see the Container section below).
+- **Style → Hover Trigger:** choose what has to be hovered for *every* Hover tab in this widget: **This widget**, **Direct parent container**, or **Custom class**. Plus transition duration and easing.
+- **Style → Box:** Icon Position (left / top / right / bottom, responsive), Vertical Alignment, Alignment (start / center / end, responsive), Icon Spacing.
+- **Style → Icon:** Size, Color (Normal / Hover), Hover Animation (grow, shrink, float, sink, rotate, tilt), Rotate.
+- **Style → Icon Background** *(the main addition)*: **Shape** quick-select (circle / rounded / square), **Size**, **Padding**, then Normal and Hover tabs each with **Background** (solid or gradient), **Background Opacity** (affects the shape only, never the icon), **Border**, **Border Radius** and **Box Shadow**.
+- **Style → Title** and **Style → Focused Title** (same toolkit; anything left empty in Focused Title is inherited from the Title): Typography, **Text Fill** (Solid with Normal/Hover colour, **Gradient** with two colours and an angle, or **Image** with size / position / repeat), **Text Stroke** (width, colour, *Outline Only*, *Stroke Behind Fill*) and **Text Shadow** (colour, X, Y, blur). Focused Title also has *Display* (inline, or on its own line).
+- **Style → Title Separator:** Width, Thickness, Line Color and Icon Color (Normal / Hover), Width on Hover, Icon Size, spacing above and below.
+- **Style → Description:** Typography, Text Shadow, Color (Normal / Hover).
+
+Notes: with a gradient or image fill the shadow is drawn with a `drop-shadow` filter (a normal `text-shadow` would show through the transparent letters); the result looks the same to the eye. Gradient / image text needs a modern browser (all current ones).
+
+### 5. Webcasata Content Filter
 
 A thin wrapper around the separate **Webcasata Content Filter** plugin. It doesn't reimplement any rendering — it looks up the same `wbcf_filter` posts (the "filters" you create under **Content Filters** in the WP admin menu) and calls that plugin's own `WBCF_Render::render_filter()`, the exact method its `[wbcf_filter id="X"]` shortcode and Gutenberg block both use. So the output here is always identical to the shortcode/block for the same filter, and any template or feature added to that plugin later works here automatically with no changes to this widget.
 
@@ -91,25 +109,8 @@ This is not a widget: it adds controls to Elementor's own **Container**, so deco
 
 **Style it** — **Style** tab → a **Pseudo :before** / **Pseudo :after** section appears (scroll below Shape Divider), each with **Normal** and **Hover** tabs:
 
-- **Style Preset** (above the tabs): *Gradient Border*, *Hover Overlay*, *Slide-In Fill* (from bottom/top/left/right), *Corner Ribbon* and *Animated Underline* — see "Presets" below.
 - **Normal:** Content (text or an icon-font code like `\f101`), **Icon Font** (Font Awesome Solid/Regular/Brands or eicons — loaded automatically; without it an icon code shows as an empty box), **Center Content** (centres the text/icon inside the Width/Height), Typography, Position, Fill Container, Width/Height, Offset (Top/Right/Bottom/Left), Background (classic or gradient), Text/Icon Color, Opacity, Border, Border Radius, Box Shadow, CSS Filters, Backdrop Blur, Transform (Translate X/Y, Rotate, Scale), Layering (Send Behind Container Content, Z-Index), Blend Mode, Pointer Events. Width, Height, Offset, Translate and Border Radius are responsive.
 - **Hover:** a **Hover Trigger** dropdown, then the same animatable options (size, offset, background, opacity, border, shadow, filters, transform), then **Transition** (duration and easing). Only what you change in Hover is applied on hover.
-
-### Presets
-
-Pick one under **Style Preset** at the top of a Pseudo `:before` / `:after` section. A preset is a ready-made starting layer, **not** a lock: everything you set in the Normal / Hover tabs lands after it and wins. Each preset has a few knobs of its own that appear when it is chosen.
-
-| Preset | What it does | Knobs |
-|---|---|---|
-| Gradient Border | Two-colour gradient border that follows the container's rounded corners (CSS mask, so the inside stays see-through) | Color, Color 2, Border Width |
-| Hover Overlay | Colour layer that fades in on hover, behind the content | Color |
-| Slide-In Fill | Colour slides in over the container on hover | Color, Slide In From (bottom/top/left/right) |
-| Corner Ribbon | Diagonal ribbon in a top corner, clipped to the container | Color, Color 2 (text), Corner, Ribbon Text |
-| Animated Underline | Bar along the bottom that grows from 0 to full width on hover | Color, Thickness |
-
-- Hover presets use the **Hover Trigger** and **Transition** from the Hover tab (this container, direct parent, or custom class).
-- Overlay and Slide-In Fill set `isolation: isolate` on the container so they sit behind its content; Slide-In Fill and Corner Ribbon also set `overflow: hidden` so nothing spills out (this also clips anything else that overhangs the container, such as a child's shadow).
-- Leaving a knob empty uses the preset's own default colour/size. Switching preset to **None** removes all of its CSS.
 
 **Hover Trigger options**
 
@@ -179,12 +180,14 @@ webcasata-elementor-addons/
 │   ├── class-qyrus-home-accordion-widget.php      # Webcasata Accordion: controls + render()
 │   ├── class-qyrus-feature-grid-widget.php        # Feature Grid: controls + render()
 │   ├── class-qyrus-icon-marquee-widget.php        # Webcasata Icon Scroll: controls + render()
+│   ├── class-webcasata-icon-box-widget.php        # Webcasata Icon Box: controls + render()
 │   └── class-qyrus-wcf-filter-widget.php          # Webcasata Content Filter: wraps WBCF_Render::render_filter()
 ├── assets/
 │   ├── css/
 │   │   ├── qyrus-accordion.css                    # Accordion styles + mobile image swap
 │   │   ├── qyrus-feature-grid.css                 # Feature grid styles
-│   │   └── qyrus-icon-marquee.css                 # Marquee keyframes + layout
+│   │   ├── qyrus-icon-marquee.css                 # Marquee keyframes + layout
+│   │   └── webcasata-icon-box.css                 # Icon Box structure, separator, transitions
 │   └── js/
 │       ├── qyrus-accordion.js                     # Accordion toggle + desktop image-swap behavior
 │       └── webcasata-pseudo-hover.js              # "Custom class" hover trigger (pseudo-elements + parent hover)
@@ -197,11 +200,14 @@ To add another widget later: drop a new `class-qyrus-*.php` file in `widgets/`, 
 
 - Only the **plugin's public identity** was changed for this package: the Plugin Name, Description, Author, Author URI, Text Domain, the plugin folder/main file name, and the admin notice text. Internal PHP class names (`Qyrus_*`), CSS classes (`.qyrus-*`) and script/style handles were intentionally left as-is — renaming those touches nearly every line across all files and carries real risk of breaking something, and they're invisible to anyone using the plugin. Say the word if you'd like a full internal rebrand too (classes, CSS prefixes, asset filenames).
 - **Author URI is a placeholder** (`https://webcasata.com`) — update the header comment in the main plugin file if that isn't correct.
-- The version was bumped to **1.3.0** to reflect the new Webcasata widget category and renamed widgets, to **1.3.1** to fix a seamless-loop bug in the Icon Scroll widget, to **1.4.0** to add the Webcasata Content Filter widget, to **1.4.1** to fix that widget's dependency check, to **1.5.0** to add the Content Filter widget's Display toggles, to **1.5.1** to split "Meta" into three separate toggles, to **1.6.0** to add the accordion's hover trigger and image switch animations, to **1.7.0** to add the Container pseudo-element extension, to **1.8.0** to add Center Content / Icon Font for pseudo-elements and Style On Parent Hover, and to **1.9.0** to add the pseudo-element style presets (see below).
+- The version was bumped to **1.3.0** to reflect the new Webcasata widget category and renamed widgets, to **1.3.1** to fix a seamless-loop bug in the Icon Scroll widget, to **1.4.0** to add the Webcasata Content Filter widget, to **1.4.1** to fix that widget's dependency check, to **1.5.0** to add the Content Filter widget's Display toggles, to **1.5.1** to split "Meta" into three separate toggles, to **1.6.0** to add the accordion's hover trigger and image switch animations, to **1.7.0** to add the Container pseudo-element extension, to **1.8.0** to add Center Content / Icon Font for pseudo-elements and Style On Parent Hover, to **1.9.0** to add the Webcasata Icon Box widget, and to **1.9.1** to fix its settings panel opening blank.
 
 ## Changelog
 
-- **1.9.0** — Pseudo-element **Style Presets** (Phase 3): Gradient Border, Hover Overlay, Slide-In Fill, Corner Ribbon, Animated Underline, each with its own colour/size/direction knobs. Presets are a CSS layer that your Normal/Hover settings override; they use the existing Hover Trigger and Transition.
+- **1.9.3** — Fixed the Webcasata Icon Box settings panel opening blank for real. Two help notes in the panel contained the characters `{{ }}` (used to describe the focused-title syntax); Elementor compiles panel notes as templates, so they threw an error and stopped the whole panel drawing. They now use HTML entities. The editor diagnostic from 1.9.2 (`&wib_debug=1`) is kept.
+- **1.9.2** — Diagnostics only: opening the editor with `&wib_debug=1` in the URL lists, in a red box and in the browser console, the name of any panel control that throws while rendering. No behaviour change otherwise.
+- **1.9.1** — Fixed the Webcasata Icon Box settings panel opening blank. The widget's "Size" control for the icon background used the same internal id (`bg_size`) as the Background group's own "Size" field; Elementor rejects duplicate control ids and the resulting notice broke the panel. The control id is now unique.
+- **1.9.0** — Added the **Webcasata Icon Box** widget: styleable icon background (shape, size, colour/gradient, opacity, border, radius, shadow; Normal + Hover), a Hover Trigger (this widget / direct parent / custom class) that drives every Hover tab, a `{{focused title}}`, text fill (solid / gradient / image), text stroke, text shadow, a title separator, and `:before` / `:after` pseudo-elements. The Container pseudo-element feature was generalised internally so the widget reuses it; Containers behave exactly as before.
 - **1.8.0** — (1) Pseudo-elements: added **Center Content**, **Icon Font** (with automatic loading of the matching Elementor icon stylesheet — fixes icon codes rendering as an empty box), **Typography** and **Text/Icon Color** (Normal and Hover). (2) New **Style On Parent Hover** section in the Advanced tab of every widget and container (trigger: direct parent container or custom class). The hover script now serves both features from one handler attached to every element, and only does work for elements that use "Custom class".
 - **1.7.0** — Added the **Pseudo Elements** extension to Elementor's Container (Phase 1): `:before` / `:after` switches in the Layout tab, a styling block for each in the Style tab with Normal and Hover tabs, and a Hover Trigger (this container / direct parent container / custom class). No existing widget changed. See "Container extension" above for the full option list and the note about Elementor's Background Overlay sharing `:before`.
 - **1.6.0** — Webcasata Accordion: added **Open Accordion On → Click / Hover** (plus a **Hover Delay**), and an **Image Switch Animation** group (animation type, duration, easing). The old "Fade Transition (ms)" control is now "Animation Duration (ms)" and keeps its saved value; it previously had no visible effect because the image toggled between `display:none` and `display:block`, which CSS transitions can't animate — the new animations are keyframe-based, so they do play. Existing accordions default to **Fade**; set Animation to **None** to restore the old instant swap. Also: the side image is now matched to its accordion item by position instead of by file URL, so two items that use the same image no longer light up two images at once.

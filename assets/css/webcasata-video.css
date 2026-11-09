@@ -1,0 +1,314 @@
+/* ==========================================================================
+   Webcasata Video
+   The page only holds a poster + play button. The video (iframe / <video>) is
+   created by assets/js/webcasata-video.js when it is needed.
+   ========================================================================== */
+
+.elementor-widget-webcasata-video .wv-wrap {
+	--wv-ratio: 16 / 9;
+	--wv-rn: 1.7778;
+	--wv-glow: #fff;
+	--wv-glow-size: 36px;
+	--wv-glow-dur: 2s;
+	position: relative;
+}
+
+.elementor-widget-webcasata-video .wv-frame {
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	aspect-ratio: var(--wv-ratio);
+	background: #000;
+	box-sizing: border-box;
+}
+
+.elementor-widget-webcasata-video .wv-poster {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: transform 0.5s ease;
+}
+
+.elementor-widget-webcasata-video .wv-overlay {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	transition: background 0.3s ease, opacity 0.3s ease;
+}
+
+/* ---- play button --------------------------------------------------------- */
+
+.elementor-widget-webcasata-video .wv-trigger {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 20px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	cursor: pointer;
+	box-sizing: border-box;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.elementor-widget-webcasata-video .wv-trigger:focus-visible .wv-play {
+	outline: 3px solid #fff;
+	outline-offset: 4px;
+}
+
+.elementor-widget-webcasata-video .wv-play {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	color: #fff;
+	line-height: 1;
+	box-sizing: border-box;
+	transition: transform 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+}
+
+.elementor-widget-webcasata-video .wv-bs-icon {
+	border-radius: 50%;
+}
+
+.elementor-widget-webcasata-video .wv-bs-text,
+.elementor-widget-webcasata-video .wv-bs-icon_text {
+	padding: 12px 22px;
+	border-radius: 999px;
+	background-color: rgba(0, 0, 0, 0.45);
+}
+
+.elementor-widget-webcasata-video .wv-icon {
+	display: block;
+	flex: 0 0 auto;
+	width: 80px;
+	height: 80px;
+	max-width: none;
+	object-fit: contain;
+}
+
+.elementor-widget-webcasata-video .wv-bs-icon_text .wv-icon {
+	width: 36px;
+	height: 36px;
+}
+
+.elementor-widget-webcasata-video .wv-label {
+	font-weight: 600;
+	font-size: 18px;
+	white-space: nowrap;
+}
+
+/* ---- glow animations ----------------------------------------------------- */
+
+.elementor-widget-webcasata-video .wv-glow-ripple::before,
+.elementor-widget-webcasata-video .wv-glow-ripple::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	border: 2px solid var(--wv-glow);
+	opacity: 0;
+	pointer-events: none;
+	animation: wv-ripple var(--wv-glow-dur) ease-out infinite;
+}
+
+.elementor-widget-webcasata-video .wv-glow-ripple::after {
+	animation-delay: calc(var(--wv-glow-dur) / 2);
+}
+
+@keyframes wv-ripple {
+	0% {
+		transform: scale(1);
+		opacity: 0.7;
+	}
+	100% {
+		transform: scale(1.7);
+		opacity: 0;
+	}
+}
+
+/* `scale` is its own property, so it does not fight the hover `transform`. */
+.elementor-widget-webcasata-video .wv-glow-pulse {
+	animation: wv-pulse var(--wv-glow-dur) ease-in-out infinite;
+}
+
+@keyframes wv-pulse {
+	0%,
+	100% {
+		scale: 1;
+	}
+	50% {
+		scale: 1.12;
+	}
+}
+
+.elementor-widget-webcasata-video .wv-glow-glow {
+	animation: wv-glow var(--wv-glow-dur) ease-in-out infinite;
+}
+
+@keyframes wv-glow {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 2px var(--wv-glow));
+	}
+	50% {
+		filter: drop-shadow(0 0 var(--wv-glow-size) var(--wv-glow));
+	}
+}
+
+/* ---- playing inline ------------------------------------------------------ */
+
+.elementor-widget-webcasata-video .wv-frame.is-playing > iframe,
+.elementor-widget-webcasata-video .wv-frame.is-playing > video {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	display: block;
+	background: #000;
+}
+
+.elementor-widget-webcasata-video .wv-frame.is-playing > video {
+	object-fit: contain;
+}
+
+.elementor-widget-webcasata-video .wv-empty {
+	padding: 30px;
+	text-align: center;
+	background: #f1f3f5;
+	color: #6b7280;
+	font-size: 14px;
+}
+
+.elementor-widget-webcasata-video .wv-noscript {
+	display: block;
+	margin-top: 8px;
+}
+
+/* ---- popup (appended to <body>, so it cannot use the widget wrapper) ------ */
+
+html.wv-modal-open {
+	overflow: hidden;
+}
+
+.wv-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	box-sizing: border-box;
+	background: var(--wv-modal-bg, rgba(0, 0, 0, 0.85));
+	opacity: 0;
+	transition: opacity 0.25s ease;
+}
+
+.wv-modal.is-open {
+	opacity: 1;
+}
+
+.wv-modal__box {
+	position: relative;
+	/* never taller than the screen: width is capped by 82vh x the aspect ratio */
+	width: min(var(--wv-modal-w, 960px), 100%, calc(82vh * var(--wv-rn, 1.7778)));
+	transform: translateY(12px) scale(0.98);
+	transition: transform 0.25s ease;
+}
+
+.wv-modal.is-open .wv-modal__box {
+	transform: none;
+}
+
+.wv-modal__frame {
+	position: relative;
+	width: 100%;
+	aspect-ratio: var(--wv-ratio, 16 / 9);
+	background: #000;
+	border-radius: var(--wv-modal-r, 0);
+	overflow: hidden;
+}
+
+.wv-modal__frame iframe,
+.wv-modal__frame video {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	display: block;
+	background: #000;
+}
+
+.wv-modal__frame video {
+	object-fit: contain;
+}
+
+.wv-modal__close {
+	position: absolute;
+	top: -44px;
+	right: 0;
+	width: 38px;
+	height: 38px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.12);
+	color: var(--wv-close-c, #fff);
+	font: 400 26px/1 Arial, sans-serif;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.wv-modal__close:hover,
+.wv-modal__close:focus-visible {
+	background: rgba(255, 255, 255, 0.28);
+	outline: none;
+}
+
+.wv-modal__close:focus-visible {
+	box-shadow: 0 0 0 3px var(--wv-close-c, #fff);
+}
+
+/* Very small / short screens: put the close button inside the video's corner. */
+@media (max-height: 520px) {
+	.wv-modal__close {
+		top: 8px;
+		right: 8px;
+		background: rgba(0, 0, 0, 0.55);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.elementor-widget-webcasata-video .wv-glow,
+	.elementor-widget-webcasata-video .wv-glow::before,
+	.elementor-widget-webcasata-video .wv-glow::after {
+		animation: none !important;
+	}
+
+	.elementor-widget-webcasata-video .wv-poster,
+	.elementor-widget-webcasata-video .wv-play,
+	.wv-modal,
+	.wv-modal__box {
+		transition: none !important;
+	}
+}

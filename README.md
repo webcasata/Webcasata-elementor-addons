@@ -15,6 +15,7 @@ All the widgets are registered under their own category in the widget panel — 
 - **Webcasata Feature Grid**
 - **Webcasata Icon Scroll**
 - **Webcasata Icon Box**
+- **Webcasata Video**
 - **Webcasata Content Filter** *(only appears if the separate Webcasata Content Filter plugin is active)*
 
 You can also just type "webcasata" (or the widget's function, e.g. "accordion", "marquee", "scroll") into the widget search box at the top of the panel.
@@ -82,7 +83,24 @@ Elementor's Icon Box with the parts it lacks: a real **background around the ico
 
 Notes: with a gradient or image fill the shadow is drawn with a `drop-shadow` filter (a normal `text-shadow` would show through the transparent letters); the result looks the same to the eye. Gradient / image text needs a modern browser (all current ones).
 
-### 5. Webcasata Content Filter
+### 5. Webcasata Video
+
+YouTube, Vimeo or self-hosted video that is **not in the page until it is played**. On load the page contains only a poster image and a play button: no iframe, no `<video>`, no request to YouTube / Vimeo and none of their scripts.
+
+- **Popup:** the video is created when the play button is clicked, inside a modal (dark backdrop, close button, Esc, click outside to close, keyboard focus kept inside, page scroll locked). Closing removes the iframe / video from the page completely, so playback stops and nothing stays behind.
+- **Inline:** the video replaces the poster when the play button is clicked.
+- **Auto Play:** with the Inline style the video is created, and plays, when the widget scrolls into view (about a quarter of it visible). With the Popup style the popup is never opened by itself; Auto Play simply means the video starts the moment the popup opens. In the Elementor editor Auto Play does not load the video (it would play while you edit); clicking the button still plays it.
+- Browsers refuse to auto play unmuted videos in some situations. Switch **Mute** on if an auto-playing video does not start.
+
+**Video section** (as in the Elementor Video widget): Video Type (Youtube / Vimeo / Self Hosted), Link (any YouTube form: watch, youtu.be, embed, shorts, live; Vimeo links including unlisted ones), Start / End Time, Video Style (Popup / Inline), Button Style (Icon / Icon + Text / Text), Button Icon (your own image, or leave empty for the built-in play icon), Active Glow and Glow Animation Type (Ripple / Pulse / Glow), and Video Options: Auto Play, Mute, Loop, Player Control, Privacy Mode (youtube-nocookie.com / Vimeo do-not-track), and the screen-reader title.
+
+**Poster Image:** automatic (YouTube thumbnail in your chosen size, falling back to the smaller one when the largest does not exist; Vimeo thumbnail fetched once and cached), your own image, or none (dark box). The poster is only an image.
+
+**Style:** aspect ratio (16:9, 21:9, 4:3, 3:2, 1:1, 9:16), border radius, border, shadow, poster zoom on hover; overlay colour / gradient (Normal and Hover); play button position, icon size, colours and background (Normal and Hover), hover scale, padding, radius, border, text typography; glow colour, size and speed; popup maximum width, backdrop colour, close button colour and corner radius.
+
+Notes: End Time is not supported by Vimeo. With JavaScript turned off a plain "Watch the video" link is shown.
+
+### 6. Webcasata Content Filter
 
 A thin wrapper around the separate **Webcasata Content Filter** plugin. It doesn't reimplement any rendering — it looks up the same `wbcf_filter` posts (the "filters" you create under **Content Filters** in the WP admin menu) and calls that plugin's own `WBCF_Render::render_filter()`, the exact method its `[wbcf_filter id="X"]` shortcode and Gutenberg block both use. So the output here is always identical to the shortcode/block for the same filter, and any template or feature added to that plugin later works here automatically with no changes to this widget.
 
@@ -181,16 +199,19 @@ webcasata-elementor-addons/
 │   ├── class-qyrus-feature-grid-widget.php        # Feature Grid: controls + render()
 │   ├── class-qyrus-icon-marquee-widget.php        # Webcasata Icon Scroll: controls + render()
 │   ├── class-webcasata-icon-box-widget.php        # Webcasata Icon Box: controls + render()
+│   ├── class-webcasata-video-widget.php           # Webcasata Video: controls, link parsing, render()
 │   └── class-qyrus-wcf-filter-widget.php          # Webcasata Content Filter: wraps WBCF_Render::render_filter()
 ├── assets/
 │   ├── css/
 │   │   ├── qyrus-accordion.css                    # Accordion styles + mobile image swap
 │   │   ├── qyrus-feature-grid.css                 # Feature grid styles
 │   │   ├── qyrus-icon-marquee.css                 # Marquee keyframes + layout
-│   │   └── webcasata-icon-box.css                 # Icon Box structure, separator, transitions
+│   │   ├── webcasata-icon-box.css                 # Icon Box structure, separator, transitions
+│   │   └── webcasata-video.css                    # Video poster, play button, glow, popup
 │   └── js/
 │       ├── qyrus-accordion.js                     # Accordion toggle + desktop image-swap behavior
-│       └── webcasata-pseudo-hover.js              # "Custom class" hover trigger (pseudo-elements + parent hover)
+│       ├── webcasata-pseudo-hover.js              # "Custom class" hover trigger (pseudo-elements + parent hover)
+│       └── webcasata-video.js                     # Webcasata Video: popup / inline, on-demand loading, auto play on view
 └── README.md
 ```
 
@@ -204,8 +225,8 @@ To add another widget later: drop a new `class-qyrus-*.php` file in `widgets/`, 
 
 ## Changelog
 
-- **1.9.3** — Fixed the Webcasata Icon Box settings panel opening blank for real. Two help notes in the panel contained the characters `{{ }}` (used to describe the focused-title syntax); Elementor compiles panel notes as templates, so they threw an error and stopped the whole panel drawing. They now use HTML entities. The editor diagnostic from 1.9.2 (`&wib_debug=1`) is kept.
-- **1.9.2** — Diagnostics only: opening the editor with `&wib_debug=1` in the URL lists, in a red box and in the browser console, the name of any panel control that throws while rendering. No behaviour change otherwise.
+- **1.10.0** — Added the **Webcasata Video** widget (YouTube / Vimeo / self-hosted; popup or inline; video only created on click, or when scrolled into view with Auto Play). Removed the editor diagnostic added in 1.9.2.
+- **1.9.3** — Fixed the Webcasata Icon Box settings panel opening blank for real. Two help notes in the panel contained the characters `{{ }}` (used to describe the focused-title syntax); Elementor compiles panel notes as templates, so they threw an error and stopped the whole panel drawing. They now use HTML entities. 
 - **1.9.1** — Fixed the Webcasata Icon Box settings panel opening blank. The widget's "Size" control for the icon background used the same internal id (`bg_size`) as the Background group's own "Size" field; Elementor rejects duplicate control ids and the resulting notice broke the panel. The control id is now unique.
 - **1.9.0** — Added the **Webcasata Icon Box** widget: styleable icon background (shape, size, colour/gradient, opacity, border, radius, shadow; Normal + Hover), a Hover Trigger (this widget / direct parent / custom class) that drives every Hover tab, a `{{focused title}}`, text fill (solid / gradient / image), text stroke, text shadow, a title separator, and `:before` / `:after` pseudo-elements. The Container pseudo-element feature was generalised internally so the widget reuses it; Containers behave exactly as before.
 - **1.8.0** — (1) Pseudo-elements: added **Center Content**, **Icon Font** (with automatic loading of the matching Elementor icon stylesheet — fixes icon codes rendering as an empty box), **Typography** and **Text/Icon Color** (Normal and Hover). (2) New **Style On Parent Hover** section in the Advanced tab of every widget and container (trigger: direct parent container or custom class). The hover script now serves both features from one handler attached to every element, and only does work for elements that use "Custom class".

@@ -2,10 +2,23 @@
 
 Custom Elementor widgets built for the Qyrus site, plus an extension that adds `:before` / `:after` controls to Elementor's own Container. The plugin is structured so more can be added the same way.
 
+**Version:** 1.11.1
 **Plugin Name:** Webcasata Elementor Addons
 **Author:** Webcasata
 **Author URI:** https://webcasata.com *(placeholder — update in the plugin header if this isn't your real site)*
 **Text Domain:** `webcasata-elementor-addons`
+
+## Turning widgets on and off (Settings → Webcasata Addons)
+
+Open **Settings → Webcasata Addons** (also linked as **Settings** on the Plugins screen). Administrators (`manage_options`) get:
+
+- **Master switch** – *Enable Webcasata Addons*. When off, nothing is registered with Elementor, the "Webcasata" category disappears and no CSS/JS is output. Your other choices are kept.
+- **A switch per widget** – Accordion, Feature Grid, Icon Scroll, Icon Box, Video, Content Filter (with **Enable all / Disable all**).
+- **A switch per extension** – Container `:before` / `:after`, and Style On Parent Hover.
+
+Everything is **on by default**, including widgets added in later versions. A widget that is off is not registered, and its CSS/JS handles are not even registered. A widget that is on only loads its CSS/JS on pages where it is used (Elementor's own per-widget dependency loading). The small shared hover script is only added when Icon Box, Container `:before` / `:after` or Style On Parent Hover is on.
+
+Pages that use a widget you turned off show nothing in its place until it is turned back on; no content is deleted. The Icon Box keeps its own `:before` / `:after` controls even when the Container extension is off.
 
 ## Finding the widgets in Elementor
 
@@ -164,7 +177,9 @@ Lets a child change while its **parent** is hovered — e.g. a card whose headin
 
 1. Zip the plugin folder if it isn't already zipped (this project already includes `webcasata-elementor-addons.zip`).
 2. In WordPress admin: **Plugins → Add New → Upload Plugin**, choose the zip, click **Install Now**, then **Activate**. If a previous version of this plugin is already installed under a different name/slug (e.g. "Qyrus Accordion Widget" or "Qyrus Elementor Widgets"), deactivate and delete that old one first — this rebranded version uses a new folder/file name so it will install alongside rather than overwrite it.
-3. Requires **Elementor** (free or Pro) to be installed and active.
+3. Requires **Elementor** (free or Pro) 3.18 or newer, WordPress 6.0+ and PHP 7.4+. Elementor is declared as a required plugin (`Requires Plugins: elementor`), and an admin notice appears if it is missing or too old.
+4. Optionally visit **Settings → Webcasata Addons** to choose which widgets load.
+5. Deleting the plugin from the Plugins screen removes its settings option and cached Vimeo thumbnails (`uninstall.php`); Elementor page data is never touched.
 
 ## Using the widgets
 
@@ -190,8 +205,12 @@ Lets a child change while its **parent** is hovered — e.g. a card whose headin
 
 ```
 webcasata-elementor-addons/
-├── webcasata-elementor-addons.php                # Plugin bootstrap – registers all widgets
+├── webcasata-elementor-addons.php                # Plugin header + constants, starts the loader
+├── readme.txt                                     # WordPress.org readme (incl. "External services")
+├── uninstall.php                                  # Removes the settings option + cached Vimeo thumbnails
 ├── includes/
+│   ├── class-webcasata-addons.php                 # Loader: registers only what the settings allow
+│   ├── class-webcasata-settings.php               # Registry of widgets/extensions + Settings → Webcasata Addons page
 │   ├── class-webcasata-pseudo-elements.php        # Container extension: :before / :after controls
 │   └── class-webcasata-parent-hover.php           # "Style On Parent Hover" for every widget/container
 ├── widgets/
@@ -202,6 +221,9 @@ webcasata-elementor-addons/
 │   ├── class-webcasata-video-widget.php           # Webcasata Video: controls, link parsing, render()
 │   └── class-qyrus-wcf-filter-widget.php          # Webcasata Content Filter: wraps WBCF_Render::render_filter()
 ├── assets/
+│   ├── admin/
+│   │   ├── webcasata-admin.css                    # Settings screen only
+│   │   └── webcasata-admin.js                     # Settings screen only (Enable/Disable all)
 │   ├── css/
 │   │   ├── qyrus-accordion.css                    # Accordion styles + mobile image swap
 │   │   ├── qyrus-feature-grid.css                 # Feature grid styles
@@ -215,7 +237,7 @@ webcasata-elementor-addons/
 └── README.md
 ```
 
-To add another widget later: drop a new `class-qyrus-*.php` file in `widgets/`, register it (and any of its own CSS/JS) in `webcasata-elementor-addons.php` the same way the existing widgets are registered.
+To add another widget later: drop the widget class in `widgets/` and its CSS/JS in `assets/`, then add **one entry** to `Webcasata_Settings::widgets()` in `includes/class-webcasata-settings.php` (slug, file, class, and its style/script handles) plus its title/description in `Webcasata_Settings::labels()` (translated strings must stay there, never in `widgets()`, which runs before `init`). The settings page, the on/off switch, registration and conditional asset loading all follow from that entry; new widgets default to on.
 
 ## Notes on this rebrand
 
@@ -225,6 +247,9 @@ To add another widget later: drop a new `class-qyrus-*.php` file in `widgets/`, 
 
 ## Changelog
 
+- **1.11.1** — Fixed the WordPress 6.7+ notice *"Function _load_textdomain_just_in_time was called incorrectly"*: the widget/extension registry was translating its labels on `plugins_loaded`, before `init`. Labels now live in `Webcasata_Settings::labels()` and are only translated on the settings screen (new test fails on 1.11.0 with 17 early translations, 0 now). `readme.txt` "Tested up to" set to 7.1.
+
+- **1.11.0** — Release preparation. **New settings screen** (Settings → Webcasata Addons): master switch plus an on/off switch for every widget and extension; disabled items are not registered and load no CSS/JS, enabled widgets load theirs only on pages that use them. Added `readme.txt` (with the required "External services" disclosure for YouTube / Vimeo), `uninstall.php`, license / "Requires at least" / "Requires PHP" / "Requires Plugins" headers, and a minimum-Elementor-version notice. The plugin class now lives in `includes/` and the two Elementor extensions are started by the loader instead of loading themselves. Hardening from a WordPress Coding Standards run: Content Filter hide-selectors can no longer contain `{ } ; < >`; escaping notes where Elementor already escapes attribute values; one internal variable renamed.
 - **1.10.0** — Added the **Webcasata Video** widget (YouTube / Vimeo / self-hosted; popup or inline; video only created on click, or when scrolled into view with Auto Play). Removed the editor diagnostic added in 1.9.2.
 - **1.9.3** — Fixed the Webcasata Icon Box settings panel opening blank for real. Two help notes in the panel contained the characters `{{ }}` (used to describe the focused-title syntax); Elementor compiles panel notes as templates, so they threw an error and stopped the whole panel drawing. They now use HTML entities. 
 - **1.9.1** — Fixed the Webcasata Icon Box settings panel opening blank. The widget's "Size" control for the icon background used the same internal id (`bg_size`) as the Background group's own "Size" field; Elementor rejects duplicate control ids and the resulting notice broke the panel. The control id is now unique.

@@ -356,5 +356,3 @@ final class Webcasata_Parent_Hover {
 		$element->end_controls_section();
 	}
 }
-
-Webcasata_Parent_Hover::instance();

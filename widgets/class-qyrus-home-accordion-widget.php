@@ -589,7 +589,7 @@ class Qyrus_Home_Accordion_Widget extends Widget_Base {
 			'data-hover-delay' => ( 'hover' === $trigger ) ? absint( $settings['hover_delay'] ) : 0,
 		] );
 		?>
-		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
+		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes every attribute value. ?>>
 
 			<div class="qyrus-accordion-list" role="tablist">
 				<?php foreach ( $items as $index => $item ) :
@@ -641,7 +641,7 @@ class Qyrus_Home_Accordion_Widget extends Widget_Base {
 							<?php endif; ?>
 
 							<?php if ( $has_link && ! empty( $item['read_more_text'] ) ) : ?>
-								<a <?php echo $this->get_render_attribute_string( $link_key ); ?> class="qyrus-accordion-readmore">
+								<a <?php echo $this->get_render_attribute_string( $link_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes every attribute value. ?> class="qyrus-accordion-readmore">
 									<span><?php echo esc_html( $item['read_more_text'] ); ?></span>
 									<span class="qyrus-readmore-arrow" aria-hidden="true">&rarr;</span>
 								</a>

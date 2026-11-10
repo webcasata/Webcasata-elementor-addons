@@ -49,29 +49,50 @@ final class Webcasata_Pseudo_Elements {
 	private $layout_tab   = Controls_Manager::TAB_LAYOUT;
 	private $is_container = true;
 
-	public static function instance() {
+	/**
+	 * Whether the Container controls are hooked. The class is also loaded for
+	 * widgets that reuse it (Icon Box) even when the Container extension is
+	 * switched off in the plugin settings.
+	 */
+	private static $hook_container = true;
+
+	/**
+	 * Creates the single instance. Only the first call decides whether the
+	 * Container controls are hooked.
+	 *
+	 * @param bool $hook_container True to add the controls to Elementor's Container.
+	 * @return Webcasata_Pseudo_Elements
+	 */
+	public static function boot( $hook_container = true ) {
 		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
+			self::$hook_container = (bool) $hook_container;
+			self::$instance       = new self();
 		}
 		return self::$instance;
 	}
 
-	private function __construct() {
-		// Layout tab: the two on/off switches.
-		add_action(
-			'elementor/element/container/section_layout_additional_options/after_section_end',
-			[ $this, 'add_layout_controls' ],
-			10,
-			2
-		);
+	public static function instance() {
+		return self::boot( true );
+	}
 
-		// Style tab: the style sections (after Shape Divider, last of the Style sections).
-		add_action(
-			'elementor/element/container/section_shape_divider/after_section_end',
-			[ $this, 'add_style_controls' ],
-			10,
-			2
-		);
+	private function __construct() {
+		if ( self::$hook_container ) {
+			// Layout tab: the two on/off switches.
+			add_action(
+				'elementor/element/container/section_layout_additional_options/after_section_end',
+				[ $this, 'add_layout_controls' ],
+				10,
+				2
+			);
+
+			// Style tab: the style sections (after Shape Divider, last of the Style sections).
+			add_action(
+				'elementor/element/container/section_shape_divider/after_section_end',
+				[ $this, 'add_style_controls' ],
+				10,
+				2
+			);
+		}
 
 		// Keeps a typed "content" string from breaking out of its CSS quotes.
 		add_filter( 'elementor/files/css/property', [ $this, 'escape_content_value' ], 10, 4 );
@@ -80,29 +101,11 @@ final class Webcasata_Pseudo_Elements {
 		add_action( 'elementor/frontend/container/before_render', [ $this, 'maybe_enqueue_icon_font' ] );
 		add_action( 'elementor/frontend/widget/before_render', [ $this, 'maybe_enqueue_icon_font' ] );
 		add_action( 'elementor/preview/enqueue_styles', [ $this, 'enqueue_all_icon_fonts' ] );
-
-		add_action( 'elementor/frontend/after_register_scripts', [ $this, 'register_scripts' ] );
-		add_action( 'elementor/frontend/after_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/* ------------------------------------------------------------------
 	 * Assets
 	 * ------------------------------------------------------------------ */
-
-	public function register_scripts() {
-		wp_register_script(
-			'webcasata-pseudo-hover',
-			QYRUS_ACCORDION_URL . 'assets/js/webcasata-pseudo-hover.js',
-			[ 'jquery', 'elementor-frontend' ],
-			QYRUS_ACCORDION_VERSION,
-			true
-		);
-	}
-
-	public function enqueue_scripts() {
-		// Tiny file; it only does work for containers using the "Custom class" trigger.
-		wp_enqueue_script( 'webcasata-pseudo-hover' );
-	}
 
 	/** Icon Font option => Elementor's registered style handle. */
 	private function icon_font_handles() {
@@ -897,5 +900,3 @@ final class Webcasata_Pseudo_Elements {
 		return $value;
 	}
 }
-
-Webcasata_Pseudo_Elements::instance();

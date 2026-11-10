@@ -681,7 +681,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 	 * @param string $typo_selector Selector list for the Typography group.
 	 */
 	private function text_toolkit( $key, $part, $typo_selector ) {
-		$W    = $this->W( $part );
+		$wrap    = $this->W( $part );
 		$gate = '.wib-' . $key . 'fill-'; // class added by the fill select, e.g. .wib-tfill-gradient
 		$hid  = function ( $n ) use ( $key ) {
 			return $key . '_' . $n;
@@ -724,7 +724,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 					'gradient' => $clip,
 					'image'    => $clip,
 				],
-				'selectors'            => [ $W => '{{VALUE}}' ],
+				'selectors'            => [ $wrap => '{{VALUE}}' ],
 				// .wib-tfill-solid / -gradient / -image on the widget (used to pick the shadow technique).
 				'prefix_class'         => 'wib-' . $key . 'fill-',
 			]
@@ -738,7 +738,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 			[
 				'label'     => __( 'Color', 'webcasata-elementor-addons' ),
 				'type'      => Controls_Manager::COLOR,
-				'selectors' => [ $W => 'color: {{VALUE}}; -webkit-text-fill-color: {{VALUE}};' ],
+				'selectors' => [ $wrap => 'color: {{VALUE}}; -webkit-text-fill-color: {{VALUE}};' ],
 				'condition' => [ $hid( 'fill' ) => 'solid' ],
 			]
 		);
@@ -784,7 +784,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 				'range'      => [ 'deg' => [ 'min' => 0, 'max' => 360 ] ],
 				'default'    => [ 'size' => 90, 'unit' => 'deg' ],
 				'selectors'  => [
-					$W => 'background-image: linear-gradient({{SIZE}}{{UNIT}}, {{' . $hid( 'g1' ) . '.VALUE}}, {{' . $hid( 'g2' ) . '.VALUE}});',
+					$wrap => 'background-image: linear-gradient({{SIZE}}{{UNIT}}, {{' . $hid( 'g1' ) . '.VALUE}}, {{' . $hid( 'g2' ) . '.VALUE}});',
 				],
 				'condition'  => [ $hid( 'fill' ) => 'gradient' ],
 			]
@@ -796,7 +796,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 			[
 				'label'     => __( 'Fill Image', 'webcasata-elementor-addons' ),
 				'type'      => Controls_Manager::MEDIA,
-				'selectors' => [ $W => 'background-image: url("{{URL}}");' ],
+				'selectors' => [ $wrap => 'background-image: url("{{URL}}");' ],
 				'condition' => [ $hid( 'fill' ) => 'image' ],
 			]
 		);
@@ -811,7 +811,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 					'contain' => __( 'Contain', 'webcasata-elementor-addons' ),
 					'auto'    => __( 'Auto', 'webcasata-elementor-addons' ),
 				],
-				'selectors' => [ $W => 'background-size: {{VALUE}};' ],
+				'selectors' => [ $wrap => 'background-size: {{VALUE}};' ],
 				'condition' => [ $hid( 'fill' ) => 'image' ],
 			]
 		);
@@ -828,7 +828,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 					'center left'   => __( 'Left', 'webcasata-elementor-addons' ),
 					'center right'  => __( 'Right', 'webcasata-elementor-addons' ),
 				],
-				'selectors' => [ $W => 'background-position: {{VALUE}};' ],
+				'selectors' => [ $wrap => 'background-position: {{VALUE}};' ],
 				'condition' => [ $hid( 'fill' ) => 'image' ],
 			]
 		);
@@ -842,7 +842,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 					'no-repeat' => __( 'No repeat', 'webcasata-elementor-addons' ),
 					'repeat'    => __( 'Repeat', 'webcasata-elementor-addons' ),
 				],
-				'selectors' => [ $W => 'background-repeat: {{VALUE}};' ],
+				'selectors' => [ $wrap => 'background-repeat: {{VALUE}};' ],
 				'condition' => [ $hid( 'fill' ) => 'image' ],
 			]
 		);
@@ -863,7 +863,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => [ 'px' ],
 				'range'      => [ 'px' => [ 'min' => 0, 'max' => 20, 'step' => 0.5 ] ],
-				'selectors'  => [ $W => '-webkit-text-stroke-width: {{SIZE}}{{UNIT}};' ],
+				'selectors'  => [ $wrap => '-webkit-text-stroke-width: {{SIZE}}{{UNIT}};' ],
 			]
 		);
 		$this->add_control(
@@ -871,7 +871,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 			[
 				'label'     => __( 'Stroke Color', 'webcasata-elementor-addons' ),
 				'type'      => Controls_Manager::COLOR,
-				'selectors' => [ $W => '-webkit-text-stroke-color: {{VALUE}};' ],
+				'selectors' => [ $wrap => '-webkit-text-stroke-color: {{VALUE}};' ],
 			]
 		);
 		$this->add_control(
@@ -880,7 +880,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 				'label'        => __( 'Outline Only (transparent fill)', 'webcasata-elementor-addons' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'return_value' => 'yes',
-				'selectors'    => [ $W => 'color: transparent; -webkit-text-fill-color: transparent;' ],
+				'selectors'    => [ $wrap => 'color: transparent; -webkit-text-fill-color: transparent;' ],
 			]
 		);
 		$this->add_control(
@@ -890,7 +890,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 				'description'  => __( 'Draws the stroke underneath the letters, so thick strokes do not eat into them.', 'webcasata-elementor-addons' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'return_value' => 'yes',
-				'selectors'    => [ $W => 'paint-order: stroke fill;' ],
+				'selectors'    => [ $wrap => 'paint-order: stroke fill;' ],
 			]
 		);
 
@@ -931,7 +931,7 @@ class Webcasata_Icon_Box_Widget extends Widget_Base {
 					'type'       => Controls_Manager::SLIDER,
 					'size_units' => [ 'px' ],
 					'range'      => [ 'px' => [ 'min' => 'b' === $n ? 0 : -50, 'max' => 50 ] ],
-					'selectors'  => [ $W => $def[0] . ': {{SIZE}}{{UNIT}};' ],
+					'selectors'  => [ $wrap => $def[0] . ': {{SIZE}}{{UNIT}};' ],
 				]
 			);
 		}

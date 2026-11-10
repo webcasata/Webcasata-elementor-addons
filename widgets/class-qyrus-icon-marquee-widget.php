@@ -382,7 +382,7 @@ class Qyrus_Icon_Marquee_Widget extends Widget_Base {
 		$this->add_render_attribute( 'wrapper', 'class', $wrapper_classes );
 		$this->add_render_attribute( 'wrapper', 'style', '--qyrus-marquee-duration: ' . max( 1, absint( $settings['speed'] ) ) . 's;' );
 		?>
-		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
+		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes every attribute value. ?>>
 			<div class="qyrus-marquee-lanes">
 				<?php foreach ( $lanes as $lane_index => $lane_icons ) :
 					if ( empty( $lane_icons ) ) {
@@ -423,7 +423,7 @@ class Qyrus_Icon_Marquee_Widget extends Widget_Base {
 										] );
 									}
 									?>
-									<<?php echo esc_attr( $tag ); ?> <?php echo $this->get_render_attribute_string( $item_key ); ?>>
+									<<?php echo esc_attr( $tag ); ?> <?php echo $this->get_render_attribute_string( $item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes every attribute value. ?>>
 										<span class="qyrus-marquee-icon-box">
 											<img src="<?php echo esc_url( $icon['icon_image']['url'] ); ?>"
 												 alt="<?php echo esc_attr( $icon['icon_name'] ); ?>"

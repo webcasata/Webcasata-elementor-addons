@@ -428,7 +428,7 @@ class Qyrus_Feature_Grid_Widget extends Widget_Base {
 			'qyrus-align-' . ( 'center' === $settings['card_alignment'] ? 'center' : 'left' ),
 		] );
 		?>
-		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
+		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes every attribute value. ?>>
 			<?php foreach ( $features as $index => $feature ) :
 				$card_key = 'card_' . $index;
 				$has_link = ! empty( $feature['feature_link']['url'] );
@@ -440,7 +440,7 @@ class Qyrus_Feature_Grid_Widget extends Widget_Base {
 					$this->add_link_attributes( $card_key, $feature['feature_link'] );
 				}
 				?>
-				<<?php echo esc_attr( $tag ); ?> <?php echo $this->get_render_attribute_string( $card_key ); ?>>
+				<<?php echo esc_attr( $tag ); ?> <?php echo $this->get_render_attribute_string( $card_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes every attribute value. ?>>
 					<?php if ( ! empty( $feature['feature_icon']['value'] ) ) : ?>
 						<span class="qyrus-feature-icon">
 							<?php Icons_Manager::render_icon( $feature['feature_icon'], [ 'aria-hidden' => 'true' ] ); ?>

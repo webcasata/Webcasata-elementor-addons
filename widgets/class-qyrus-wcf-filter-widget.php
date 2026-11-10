@@ -321,7 +321,7 @@ class Qyrus_WCF_Filter_Widget extends Widget_Base {
 
 		$overrides = [];
 		if ( ! empty( $settings['override_posts_per_page'] ) ) {
-			$overrides['posts_per_page'] = absint( $settings['override_posts_per_page'] );
+			$overrides['posts_per_page'] = absint( $settings['override_posts_per_page'] ); // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- Editor-chosen value for the Content Filter plugin.
 		}
 		if ( ! empty( $settings['override_template'] ) ) {
 			$overrides['template'] = sanitize_key( $settings['override_template'] );
@@ -363,7 +363,9 @@ class Qyrus_WCF_Filter_Widget extends Widget_Base {
 				// tries to break out of the <style> tag; ordinary CSS
 				// selector syntax (brackets, quotes, *, ., #, :, etc.)
 				// passes through untouched.
-				$part = trim( wp_strip_all_tags( $part ) );
+				// Braces, semicolons and angle brackets are removed as well, so a
+				// value can never close the rule or start a new one.
+				$part = trim( preg_replace( '/[{};<>]/', '', wp_strip_all_tags( $part ) ) );
 				if ( '' !== $part ) {
 					$rules[] = $scope . ' ' . $part;
 				}
@@ -374,6 +376,7 @@ class Qyrus_WCF_Filter_Widget extends Widget_Base {
 			return;
 		}
 
-		printf( '<style>%s{display:none !important;}</style>', implode( ',', $rules ) );
+		// Every rule was stripped of tags / braces / semicolons above.
+		printf( '<style>%s{display:none !important;}</style>', implode( ',', $rules ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
